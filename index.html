@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BON & BI - DASHBOARD V4</title>
+    <title>BON & BI - DASHBOARD</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
@@ -32,14 +32,14 @@
         textarea, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
         .hidden { display: none; }
         
-        .report-section { margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px; }
-        .chart-box { height: 280px; width: 100%; margin-top: 10px; }
+        .chart-box { height: 250px; width: 100%; margin-top: 10px; }
+        .empty-task { text-align: center; padding: 20px; color: #999; font-style: italic; background: #fdfdfd; border-radius: 15px; border: 1px dashed #ddd; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="loading" style="text-align:center; padding: 50px;">🚀 Đang kết nối mây...</div>
+    <div id="loading" style="text-align:center; padding: 50px;">🚀 Đang kết nối dữ liệu...</div>
     
     <div id="app" class="hidden">
         <div class="header">
@@ -56,60 +56,55 @@
         </select>
 
         <div class="score-box">
-            <div style="font-size:0.9em; opacity:0.8">ĐIỂM TÍCH LŨY HIỆN TẠI</div>
+            <div style="font-size:0.9em; opacity:0.8">TỔNG ĐIỂM CỦA CON</div>
             <div style="font-size:3em; font-weight:bold" id="totalScore">0</div>
         </div>
 
         <div id="taskList"></div>
 
         <div class="reward-box">
-            <h4 style="margin:0 0 10px 0">🎁 QUÀ TẶNG:</h4>
+            <h4 style="margin:0 0 10px 0">🎁 QUÀ TẶNG CHUNG:</h4>
             <div id="rewardContent" style="white-space: pre-wrap; font-size: 0.95em; color: #856404;"></div>
         </div>
 
-        <div class="report-section">
-            <h3 style="margin:0">📊 Báo cáo tháng <span id="monthTitle"></span></h3>
-            <div style="display:flex; justify-content: space-around; margin: 15px 0;">
+        <div class="report-section" style="margin-top:20px; border-top: 1px solid #eee; padding-top:20px;">
+            <h3 style="margin:0">📊 Thống kê tháng <span id="monthTitle"></span></h3>
+            <div style="display:flex; justify-content: space-around; margin: 10px 0;">
                 <div style="color:var(--primary)">BON: <b id="statBon">0</b>đ</div>
                 <div style="color:var(--danger)">BI: <b id="statBi">0</b>đ</div>
             </div>
-            <div class="chart-box">
-                <canvas id="myChart"></canvas>
-            </div>
+            <div class="chart-box"><canvas id="myChart"></canvas></div>
         </div>
 
         <button style="background:none; border:1px dashed #ccc; color:#888; width:100%; margin-top:30px; padding:15px; border-radius:15px" onclick="login()">🔐 QUẢN LÝ CHO BỐ MẸ</button>
 
         <div id="adminArea" class="admin-panel hidden">
-            <h3 style="text-align:center; margin-top:0">🛠 ADMIN</h3>
+            <h3 style="text-align:center; margin-top:0">🛠 BẢNG ĐIỀU KHIỂN</h3>
             <div style="display:flex; gap:10px; margin-bottom:15px">
                 <button onclick="showTab('approve')" id="btnTabApprove" style="flex:1; background:var(--success); color:white">Duyệt việc</button>
                 <button onclick="showTab('config')" id="btnTabConfig" style="flex:1; background:#eee">Cài đặt</button>
             </div>
             
             <div id="tabApprove" class="hidden">
-                <h4 id="adminTargetName">Đang duyệt cho bé...</h4>
+                <h4 id="adminTargetName">Việc chờ duyệt:</h4>
                 <div id="approveList"></div>
             </div>
 
             <div id="tabConfig" class="hidden">
-                <label><b>Bước 1: Chọn con để sửa việc:</b></label>
+                <label><b>1. Chọn bé để giao việc:</b></label>
                 <select id="configChildSelect" onchange="updateConfigUI()">
-                    <option value="BON">Sửa việc cho BON</option>
-                    <option value="BI">Sửa việc cho BI</option>
+                    <option value="BON">Giao việc cho BON</option>
+                    <option value="BI">Giao việc cho BI</option>
                 </select>
 
-                <div style="background:#fff; padding:10px; border-radius:10px; border:1px solid #eee">
-                    <label>📝 Việc ngày thường:</label>
-                    <textarea id="editWeekday" rows="4" placeholder="Mỗi dòng 1 việc"></textarea>
-                    <label>🎉 Việc cuối tuần:</label>
-                    <textarea id="editWeekend" rows="4" placeholder="Mỗi dòng 1 việc"></textarea>
-                </div>
-
-                <div style="margin-top:15px">
-                    <label>🎁 Thưởng chung (Bảng giá đổi quà):</label>
-                    <textarea id="editRewards" rows="3" placeholder="Ví dụ: 50đ = Đi bơi..."></textarea>
-                </div>
+                <label>📝 Việc ngày thường (mỗi việc 1 dòng):</label>
+                <textarea id="editWeekday" rows="4"></textarea>
+                <label>🎉 Việc cuối tuần (mỗi việc 1 dòng):</label>
+                <textarea id="editWeekend" rows="4"></textarea>
+                
+                <hr>
+                <label>🎁 Danh sách thưởng chung:</label>
+                <textarea id="editRewards" rows="3"></textarea>
                 
                 <button style="background:var(--dark); color:white; width:100%; padding:15px; font-size:1.1em; margin-top:10px" onclick="saveConfig()">LƯU CÀI ĐẶT</button>
             </div>
@@ -119,7 +114,6 @@
 </div>
 
 <script>
-// --- CẤU HÌNH FIREBASE ---
 const firebaseConfig = {
   apiKey: "AIzaSyCuQCluWc07QOWpAC5lGCxMeOGoujq4k8w",
   authDomain: "bon-bi.firebaseapp.com",
@@ -132,7 +126,6 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-
 const avatars = { BON: "https://i.postimg.cc/G9vhLbhg/Bon.jpg", BI: "https://i.postimg.cc/hhVPDKP0/Bi.jpg" };
 
 let dataMaster = {
@@ -144,17 +137,17 @@ let dataMaster = {
 let myChart = null;
 let isAdmin = false;
 
-// ĐỒNG BỘ DỮ LIỆU
-db.ref('bonbi_final_v4').on('value', (snap) => {
+// ĐỒNG BỘ DỮ LIỆU TỪ FIREBASE
+db.ref('bonbi_v5_stable').on('value', (snap) => {
     const data = snap.val();
     if(data) dataMaster = data;
     document.getElementById('loading').classList.add('hidden');
     document.getElementById('app').classList.remove('hidden');
     render();
-    setTimeout(drawChart, 300); // Đợi giao diện render rồi mới vẽ biểu đồ
+    setTimeout(drawChart, 500);
 });
 
-function sync() { db.ref('bonbi_final_v4').set(dataMaster); }
+function sync() { db.ref('bonbi_v5_stable').set(dataMaster); }
 function today() { return new Date().toISOString().split('T')[0]; }
 function getDayType() { const d = new Date().getDay(); return (d===0 || d===6) ? 'weekend' : 'weekday'; }
 
@@ -168,24 +161,33 @@ function render() {
     document.getElementById('dateText').innerText = d + (type==='weekend' ? " (Cuối tuần)" : " (Ngày thường)");
     document.getElementById('rewardContent').innerText = dataMaster.rewards || "Chưa có danh sách thưởng.";
 
+    // Khởi tạo logs cho ngày hôm nay nếu chưa có
     if(!dataMaster.logs[c]) dataMaster.logs[c] = {};
     if(!dataMaster.logs[c][d]) {
-        dataMaster.logs[c][d] = (dataMaster.taskData[c][type] || []).map(t => ({text: t, status: 'not'}));
+        const tasks = dataMaster.taskData[c][type] || [];
+        dataMaster.logs[c][d] = tasks.map(t => ({text: t, status: 'not'}));
     }
 
+    // Hiển thị danh sách việc
     let h = "";
-    dataMaster.logs[c][d].forEach((t, i) => {
-        h += `<div class="task ${t.status}">
-            <div style="flex:1"><b>${t.text}</b><br><small style="color:#888">${t.status.toUpperCase()}</small></div>
-            <div>
-                ${t.status === 'not' ? `<button class="btn-action" onclick="setStatus('${c}', ${i}, 'pending')">Xong</button>` : ''}
-                ${t.status === 'pending' ? `<button class="btn-redo" onclick="setStatus('${c}', ${i}, 'not')">Hủy</button>` : ''}
-                ${t.status === 'done' ? '✅' : ''} ${t.status === 'missed' ? '❌' : ''}
-            </div>
-        </div>`;
-    });
+    const todayTasks = dataMaster.logs[c][d];
+    if (todayTasks.length === 0) {
+        h = `<div class="empty-task">Bố mẹ chưa giao việc cho ${c} hôm nay rồi!</div>`;
+    } else {
+        todayTasks.forEach((t, i) => {
+            h += `<div class="task ${t.status}">
+                <div style="flex:1"><b>${t.text}</b><br><small style="color:#888">${t.status.toUpperCase()}</small></div>
+                <div>
+                    ${t.status === 'not' ? `<button class="btn-action" onclick="setStatus('${c}', ${i}, 'pending')">Xong</button>` : ''}
+                    ${t.status === 'pending' ? `<button class="btn-redo" onclick="setStatus('${c}', ${i}, 'not')">Hủy</button>` : ''}
+                    ${t.status === 'done' ? '✅' : ''} ${t.status === 'missed' ? '❌' : ''}
+                </div>
+            </div>`;
+        });
+    }
     document.getElementById('taskList').innerHTML = h;
 
+    // Tính điểm tổng
     let total = 0;
     for(let k in dataMaster.logs[c]) {
         dataMaster.logs[c][k].forEach(t => { if(t.status==='done') total++; if(t.status==='missed') total--; });
@@ -193,7 +195,7 @@ function render() {
     document.getElementById('totalScore').innerText = total;
 
     if(isAdmin) {
-        document.getElementById('adminTargetName').innerText = "Duyệt việc cho: " + c;
+        document.getElementById('adminTargetName').innerText = "Đang duyệt cho: " + c;
         let ah = "";
         dataMaster.logs[c][d].forEach((t, i) => {
             if(t.status === 'pending') {
@@ -204,8 +206,7 @@ function render() {
                 </div>`;
             }
         });
-        document.getElementById('approveList').innerHTML = ah || "Hết việc chờ.";
-        updateConfigUI();
+        document.getElementById('approveList').innerHTML = ah || "Hết việc chờ duyệt.";
     }
 }
 
@@ -225,7 +226,7 @@ function saveConfig() {
     dataMaster.taskData[c].weekend = document.getElementById('editWeekend').value.split('\n').filter(x=>x.trim());
     dataMaster.rewards = document.getElementById('editRewards').value;
     sync();
-    alert("Đã lưu cấu hình thành công!");
+    alert("Đã lưu việc cho " + c);
 }
 
 function login() {
@@ -233,6 +234,7 @@ function login() {
         isAdmin = true;
         document.getElementById('adminArea').classList.remove('hidden');
         showTab('approve');
+        updateConfigUI();
         render();
     }
 }
@@ -277,11 +279,7 @@ function drawChart() {
                 { label: 'BI', data: dBi, borderColor: '#e74c3c', tension: 0.1, fill: false }
             ]
         },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false,
-            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
-        }
+        options: { responsive: true, maintainAspectRatio: false }
     });
 }
 </script>
