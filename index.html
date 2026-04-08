@@ -3,132 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BON & BI PRO DASHBOARD</title>
+    <title>BON & BI - DASHBOARD</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
-        :root { --primary: #4a90e2; --success: #2ecc71; --warning: #f1c40f; --danger: #e74c3c; --dark: #2c3e50; --bg: #f0f2f5; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; padding: 10px; color: #333; }
-        .container { max-width: 500px; margin: auto; background: #fff; padding: 20px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        :root { --primary: #4a90e2; --success: #2ecc71; --warning: #f1c40f; --danger: #e74c3c; --dark: #2c3e50; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 10px; }
+        .container { max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         
-        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
-        .avatar { width: 80px; height: 80px; border-radius: 50%; border: 4px solid var(--primary); object-fit: cover; background: #eee; }
-        h1 { margin: 0; font-size: 1.6em; color: var(--primary); }
-        .date-info { font-size: 0.85em; color: #888; font-weight: bold; }
-
-        .score-card { 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white; padding: 20px; border-radius: 20px; text-align: center; margin: 15px 0;
-            box-shadow: 0 4px 15px rgba(118, 75, 162, 0.3);
-        }
+        /* Giao diện Header & Score */
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .avatar { width: 70px; height: 70px; border-radius: 50%; border: 3px solid var(--primary); object-fit: cover; }
+        .score-box { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 20px; }
         
-        .task-item { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 15px; margin-bottom: 12px; border-radius: 15px; 
-            background: #fff; border-left: 6px solid #ddd;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-        }
-        .task-item.done { border-left-color: var(--success); background: #f0fff4; }
-        .task-item.pending { border-left-color: var(--warning); background: #fffdf0; }
-        .task-item.missed { border-left-color: var(--danger); background: #fff5f5; }
-
-        button { border: none; border-radius: 12px; padding: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        button:active { transform: scale(0.95); }
-        .btn-done { background: var(--primary); color: white; padding: 8px 20px; }
+        /* Task & Admin */
+        .task { display: flex; justify-content: space-between; align-items: center; padding: 15px; margin-bottom: 10px; border-radius: 12px; background: #f9f9f9; border-left: 5px solid #ddd; }
+        .task.done { border-left-color: var(--success); }
+        .task.pending { border-left-color: var(--warning); }
+        .task.missed { border-left-color: var(--danger); }
         
-        .report-area { margin-top: 30px; padding-top: 20px; border-top: 2px solid #eee; }
-        .chart-box { height: 250px; margin-top: 15px; }
-        .admin-box { background: #f8f9fa; padding: 15px; border-radius: 20px; border: 2px solid #ddd; margin-top: 25px; }
+        button { border: none; border-radius: 10px; padding: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-main { background: var(--primary); color: white; width: 100%; }
+        .btn-outline { background: none; border: 1px dashed #ccc; color: #888; width: 100%; margin-top: 20px; }
         
-        select, textarea, input { 
-            width: 100%; padding: 12px; margin: 10px 0; border-radius: 12px; 
-            border: 1px solid #ddd; font-size: 16px; box-sizing: border-box;
-        }
+        /* Phần báo cáo */
+        .report-section { margin-top: 30px; padding-top: 20px; border-top: 2px solid #eee; }
+        .chart-container { position: relative; height: 300px; width: 100%; margin-top: 15px; }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .stat-card { background: #f8f9fa; padding: 10px; border-radius: 10px; text-align: center; border: 1px solid #eee; }
+        
+        .admin-panel { background: #fff; border: 2px solid var(--dark); padding: 15px; border-radius: 15px; margin-top: 20px; }
+        textarea, select { width: 100%; padding: 10px; margin: 10px 0; border-radius: 8px; border: 1px solid #ddd; }
         .hidden { display: none; }
-        .reward-item { font-size: 0.9em; padding: 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
     </style>
 </head>
 <body>
 
-<div id="loading" style="text-align:center; padding:100px; color:var(--primary); font-weight:bold;">🚀 Đang kết nối mây...</div>
-
-<div class="container hidden" id="mainApp">
-    <div class="header">
-        <div>
-            <h1 id="childName">BÉ BON</h1>
-            <div id="todayDate" class="date-info"></div>
-        </div>
-        <img id="childAvatar" class="avatar" src="" alt="avatar">
-    </div>
-
-    <select id="selectChild" onchange="render()">
-        <option value="BON">👤 Bé BON</option>
-        <option value="BI">👤 Bé BI</option>
-    </select>
-
-    <div class="score-card">
-        <div style="font-size: 0.8em; opacity: 0.9;">⭐ TỔNG ĐIỂM TÍCH LŨY</div>
-        <div style="font-size: 3em; font-weight: bold;" id="displayScore">0</div>
-    </div>
-
-    <div id="rewardListDisplay" style="margin-bottom: 15px;"></div>
-
-    <div id="taskList"></div>
-
-    <div class="report-area">
-        <h3 style="margin:0">📊 Thống kê tháng <span id="curMonth"></span></h3>
-        <div style="display:flex; justify-content: space-around; margin: 10px 0; font-size: 0.9em;">
-            <div style="color:var(--primary)">BON: <b id="monthScoreBon">0</b>đ</div>
-            <div style="color:var(--danger)">BI: <b id="monthScoreBi">0</b>đ</div>
-        </div>
-        <div class="chart-box">
-            <canvas id="scoreChart"></canvas>
-        </div>
-    </div>
-
-    <button onclick="login()" style="background:none; color:#bbb; width:100%; margin-top:40px; border:1px dashed #ccc; font-size:0.8em">🔐 CHẾ ĐỘ BỐ MẸ</button>
-
-    <div id="adminPanel" class="admin-box hidden">
-        <h3 style="text-align:center; margin-top:0">🛠 QUẢN LÝ</h3>
-        <div style="display:flex; gap:5px">
-            <button onclick="setTab('approve')" style="flex:1; background:var(--success); color:white">Duyệt việc</button>
-            <button onclick="setTab('config')" style="flex:1; background:#eee">Cài đặt</button>
+<div class="container">
+    <div id="loading" style="text-align:center">🚀 Đang kết nối dữ liệu...</div>
+    
+    <div id="app" class="hidden">
+        <div class="header">
+            <div>
+                <h2 id="hello" style="margin:0">Chào con!</h2>
+                <div id="dateText" style="font-size:0.8em; color:#666"></div>
+            </div>
+            <img id="avatar" class="avatar" src="" alt="avatar">
         </div>
 
-        <div id="tabApprove" class="hidden">
-            <h4 style="margin:15px 0 5px 0">Việc chờ duyệt:</h4>
-            <div id="approveList"></div>
+        <select id="childSelect" onchange="render()">
+            <option value="BON">👤 Bé BON</option>
+            <option value="BI">👤 Bé BI</option>
+        </select>
+
+        <div class="score-box">
+            <div style="font-size:0.8em; opacity:0.8">ĐIỂM HIỆN TẠI</div>
+            <div style="font-size:2.5em; font-weight:bold" id="totalScore">0</div>
         </div>
 
-        <div id="tabConfig" class="hidden">
-            <label>📝 Danh sách việc T2 - T6:</label>
-            <textarea id="editWeekday" rows="3"></textarea>
-            
-            <label>🎉 Danh sách việc T7 - CN:</label>
-            <textarea id="editWeekend" rows="3"></textarea>
+        <div id="taskList"></div>
 
-            <label>🎁 Danh sách Quà & Điểm (ví dụ: Xem phim - 50):</label>
-            <textarea id="editRewards" rows="3" placeholder="Món quà - Điểm"></textarea>
-
-            <div style="background:#eee; padding:10px; border-radius:10px; margin-top:10px">
-                <label>⚖️ Điều chỉnh điểm nhanh:</label>
-                <div style="display:flex; gap:5px">
-                    <input type="number" id="manualScore" placeholder="Nhập số điểm (ví dụ: 5 hoặc -5)">
-                    <button onclick="adjustScore()" style="background:var(--dark); color:white; padding:0 15px">OK</button>
+        <div class="report-section">
+            <h3 style="margin:0">📊 Báo cáo tháng <span id="monthTitle"></span></h3>
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div style="font-size:0.7em; color:#666">BON</div>
+                    <div style="font-weight:bold; color:var(--primary)" id="statBon">0 đ</div>
+                </div>
+                <div class="stat-card">
+                    <div style="font-size:0.7em; color:#666">BI</div>
+                    <div style="font-weight:bold; color:var(--primary)" id="statBi">0 đ</div>
                 </div>
             </div>
-
-            <button onclick="saveConfig()" style="background:var(--primary); color:white; width:100%; margin-top:15px">LƯU CẤU HÌNH</button>
+            <div class="chart-container">
+                <canvas id="myChart"></canvas>
+            </div>
         </div>
-        
-        <button onclick="location.reload()" style="background:#333; color:white; width:100%; margin-top:15px">THOÁT QUẢN LÝ</button>
+
+        <button class="btn-outline" onclick="login()">🔐 QUẢN LÝ CHO BỐ MẸ</button>
+
+        <div id="adminArea" class="admin-panel hidden">
+            <h3 style="text-align:center">BẢNG ĐIỀU KHIỂN</h3>
+            <div style="display:flex; gap:5px">
+                <button onclick="showTab('approve')" style="flex:1; background:var(--success); color:white">Duyệt việc</button>
+                <button onclick="showTab('config')" style="flex:1; background:#eee">Cài đặt</button>
+            </div>
+            
+            <div id="tabApprove" class="hidden">
+                <div id="approveList" style="margin-top:10px"></div>
+            </div>
+
+            <div id="tabConfig" class="hidden">
+                <label>Việc ngày thường:</label>
+                <textarea id="editWeekday" rows="4"></textarea>
+                <label>Việc cuối tuần:</label>
+                <textarea id="editWeekend" rows="4"></textarea>
+                <button class="btn-main" onclick="saveConfig()">LƯU CÀI ĐẶT</button>
+            </div>
+            <button onclick="location.reload()" style="background:#333; color:white; width:100%; margin-top:10px">THOÁT</button>
+        </div>
     </div>
 </div>
 
 <script>
+// --- CẤU HÌNH ---
 const firebaseConfig = {
     apiKey: "AIzaSyCuQCluWc07QOWpAC5lGCxMeOGoujq4k8w",
     authDomain: "bon-bi.firebaseapp.com",
@@ -139,6 +120,10 @@ const firebaseConfig = {
     databaseURL: "https://bon-bi-default-rtdb.firebaseio.com/"
 };
 
+// ĐIỀN THÔNG TIN TELEGRAM VÀO ĐÂY ĐỂ NHẬN THÔNG BÁO
+const TG_TOKEN = ""; 
+const TG_CHATID = "";
+
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
@@ -147,11 +132,11 @@ const avatars = {
     BI: "https://i.postimg.cc/hhVPDKP0/Bi.jpg"
 };
 
-let taskData = { BON: { weekday: [], weekend: [], rewards: [] }, BI: { weekday: [], weekend: [], rewards: [] } };
+let taskData = { BON: { weekday: [], weekend: [] }, BI: { weekday: [], weekend: [] } };
 let logs = {};
 let myChart = null;
-let isAdmin = false;
 
+// --- ĐỒNG BỘ DỮ LIỆU ---
 db.ref('bonbi_data').on('value', (snap) => {
     const data = snap.val();
     if(data) {
@@ -159,108 +144,50 @@ db.ref('bonbi_data').on('value', (snap) => {
         logs = data.logs || logs;
     }
     document.getElementById('loading').classList.add('hidden');
-    document.getElementById('mainApp').classList.remove('hidden');
+    document.getElementById('app').classList.remove('hidden');
     render();
-    drawChart();
+    updateChart();
 });
 
 function sync() { db.ref('bonbi_data').set({ taskData, logs }); }
 
-function today() { return new Date().toISOString().split('T')[0]; }
 function getDayType() { const d = new Date().getDay(); return (d===0 || d===6) ? 'weekend' : 'weekday'; }
+function today() { return new Date().toISOString().split('T')[0]; }
 
-function render() {
-    const c = document.getElementById('selectChild').value;
-    const d = today();
-    const type = getDayType();
-
-    document.getElementById('childName').innerText = "BÉ " + c;
-    document.getElementById('childAvatar').src = avatars[c];
-    document.getElementById('todayDate').innerText = (type==='weekend' ? "CUỐI TUẦN " : "NGÀY THƯỜNG ") + d;
-
-    if(!logs[c]) logs[c] = {};
-    if(!logs[c][d]) logs[c][d] = (taskData[c][type] || []).map(t => ({text: t, status: 'not'}));
-
-    // Việc của bé
-    let h = "";
-    logs[c][d].forEach((t, i) => {
-        let stText = t.status === 'done' ? '✅ XONG' : t.status === 'pending' ? '⏳ CHỜ' : t.status === 'missed' ? '❌ PHẠT' : '⭕ CHƯA';
-        h += `<div class="task-item ${t.status}">
-            <div><b>${t.text}</b><br><small style="color:#999">${stText}</small></div>
-            ${t.status==='not' ? `<button class="btn-done" onclick="finishTask('${c}', ${i})">Xong</button>` : ''}
-        </div>`;
-    });
-    document.getElementById('taskList').innerHTML = h;
-
-    // Hiển thị Quà
-    let rh = "<b>🎁 Quà đang chờ:</b>";
-    (taskData[c].rewards || []).forEach(r => {
-        rh += `<div class="reward-item"><span>${r.name}</span> <span style="color:var(--primary)">${r.point}đ</span></div>`;
-    });
-    document.getElementById('rewardListDisplay').innerHTML = (taskData[c].rewards && taskData[c].rewards.length > 0) ? rh : "";
-
-    // Tính tổng điểm
-    let total = 0;
-    for(let date in logs[c]) {
-        logs[c][date].forEach(t => { 
-            if(t.status==='done') total++; 
-            if(t.status==='missed') total--; 
-            if(t.status==='manual') total += (t.point || 0);
-        });
-    }
-    document.getElementById('displayScore').innerText = total;
-
-    if(isAdmin) {
-        let ah = "";
-        logs[c][d].forEach((t, i) => {
-            if(t.status === 'pending' || t.status === 'not') {
-                ah += `<div class="task-item">
-                    <div style="flex:1"><b>${t.text}</b></div>
-                    <div style="display:flex; gap:5px">
-                        <button onclick="verify(${i}, true)" style="background:var(--success); color:white; padding:5px 10px">Duyệt</button>
-                        <button onclick="verify(${i}, false)" style="background:var(--danger); color:white; padding:5px 10px">Phạt</button>
-                    </div>
-                </div>`;
-            }
-        });
-        document.getElementById('approveList').innerHTML = ah || "Hết việc chờ duyệt!";
-        document.getElementById('editWeekday').value = (taskData[c].weekday || []).join('\n');
-        document.getElementById('editWeekend').value = (taskData[c].weekend || []).join('\n');
-        document.getElementById('editRewards').value = (taskData[c].rewards || []).map(r => `${r.name} - ${r.point}`).join('\n');
-    }
-}
-
-function drawChart() {
-    const ctx = document.getElementById('scoreChart').getContext('2d');
+// --- HIỂN THỊ BIỂU ĐỒ ---
+function updateChart() {
+    const ctx = document.getElementById('myChart').getContext('2d');
     const now = new Date();
-    const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    document.getElementById('curMonth').innerText = now.getMonth() + 1;
+    const currentMonth = now.getMonth();
+    const daysInMonth = new Date(now.getFullYear(), currentMonth + 1, 0).getDate();
     
-    let labels = [], dataBon = [], dataBi = [], sumBon = 0, sumBi = 0;
+    let labels = [];
+    let dataBon = [];
+    let dataBi = [];
+    let totalBon = 0, totalBi = 0;
 
-    for (let i = 1; i <= days; i++) {
+    for (let i = 1; i <= daysInMonth; i++) {
         labels.push(i);
-        let dStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+        let dateStr = `${now.getFullYear()}-${String(currentMonth + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
         
-        const calcDay = (child) => {
-            let s = 0;
-            if(logs[child] && logs[child][dStr]) {
-                logs[child][dStr].forEach(t => { 
-                    if(t.status==='done') s++; 
-                    if(t.status==='missed') s--; 
-                    if(t.status==='manual') s += (t.point || 0);
-                });
-            }
-            return s;
-        };
+        let scoreDayBon = 0;
+        if(logs.BON && logs.BON[dateStr]) {
+            logs.BON[dateStr].forEach(t => { if(t.status==='done') scoreDayBon++; if(t.status==='missed') scoreDayBon--; });
+        }
+        dataBon.push(scoreDayBon);
+        totalBon += scoreDayBon;
 
-        let sBon = calcDay('BON'); let sBi = calcDay('BI');
-        dataBon.push(sBon); sumBon += sBon;
-        dataBi.push(sBi); sumBi += sBi;
+        let scoreDayBi = 0;
+        if(logs.BI && logs.BI[dateStr]) {
+            logs.BI[dateStr].forEach(t => { if(t.status==='done') scoreDayBi++; if(t.status==='missed') scoreDayBi--; });
+        }
+        dataBi.push(scoreDayBi);
+        totalBi += scoreDayBi;
     }
 
-    document.getElementById('monthScoreBon').innerText = sumBon;
-    document.getElementById('monthScoreBi').innerText = sumBi;
+    document.getElementById('monthTitle').innerText = (currentMonth + 1);
+    document.getElementById('statBon').innerText = totalBon + " đ";
+    document.getElementById('statBi').innerText = totalBi + " đ";
 
     if (myChart) myChart.destroy();
     myChart = new Chart(ctx, {
@@ -272,46 +199,95 @@ function drawChart() {
                 { label: 'BI', data: dataBi, backgroundColor: '#e74c3c' }
             ]
         },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true } }
+        }
     });
 }
 
-function finishTask(c, i) { logs[c][today()][i].status = 'pending'; sync(); }
-function verify(i, ok) { 
-    const c = document.getElementById('selectChild').value;
+function render() {
+    const c = document.getElementById('childSelect').value;
+    const d = today();
+    const type = getDayType();
+    
+    document.getElementById('avatar').src = avatars[c];
+    document.getElementById('hello').innerText = "Chào " + c + "!";
+    document.getElementById('dateText').innerText = d + (type==='weekend' ? " (Cuối tuần)" : " (Ngày thường)");
+
+    if(!logs[c]) logs[c] = {};
+    if(!logs[c][d]) logs[c][d] = (taskData[c][type] || []).map(t => ({text: t, status: 'not'}));
+
+    // Việc của bé
+    let h = "";
+    logs[c][d].forEach((t, i) => {
+        h += `<div class="task ${t.status}">
+            <div><b>${t.text}</b><br><small>${t.status.toUpperCase()}</small></div>
+            ${t.status==='not' ? `<button onclick="doTask('${c}', ${i})" style="background:var(--primary); color:white; padding:5px 15px">Xong</button>` : ''}
+        </div>`;
+    });
+    document.getElementById('taskList').innerHTML = h;
+
+    // Tổng điểm
+    let total = 0;
+    for(let k in logs[c]) logs[c][k].forEach(t => { if(t.status==='done') total++; if(t.status==='missed') total--; });
+    document.getElementById('totalScore').innerText = total;
+
+    // Admin duyệt
+    if(isAdmin) {
+        let ah = "";
+        logs[c][d].forEach((t, i) => {
+            if(t.status === 'pending' || t.status === 'not') {
+                ah += `<div class="task">
+                    <span>${t.text}</span>
+                    <div>
+                        <button onclick="approve(${i}, true)" style="background:var(--success); color:white; padding:5px">Duyệt</button>
+                        <button onclick="approve(${i}, false)" style="background:var(--danger); color:white; padding:5px">Phạt</button>
+                    </div>
+                </div>`;
+            }
+        });
+        document.getElementById('approveList').innerHTML = ah || "Hết việc chờ duyệt!";
+        document.getElementById('editWeekday').value = taskData[c].weekday.join('\n');
+        document.getElementById('editWeekend').value = taskData[c].weekend.join('\n');
+    }
+}
+
+function doTask(c, i) { 
+    logs[c][today()][i].status = 'pending'; 
+    sync(); 
+    if(TG_TOKEN) sendTG(`📢 Bé ${c} đã làm xong: ${logs[c][today()][i].text}`);
+}
+
+function approve(i, ok) { 
+    const c = document.getElementById('childSelect').value;
     logs[c][today()][i].status = ok ? 'done' : 'missed'; 
     sync(); 
 }
 
-function adjustScore() {
-    const c = document.getElementById('selectChild').value;
-    const val = parseInt(document.getElementById('manualScore').value);
-    if(isNaN(val)) return;
-    if(!logs[c][today()]) logs[c][today()] = [];
-    logs[c][today()].push({ text: "Điều chỉnh bởi bố mẹ", status: "manual", point: val });
-    document.getElementById('manualScore').value = "";
-    sync();
-    alert("Đã cộng/trừ " + val + " điểm!");
-}
-
 function saveConfig() {
-    const c = document.getElementById('selectChild').value;
+    const c = document.getElementById('childSelect').value;
     taskData[c].weekday = document.getElementById('editWeekday').value.split('\n').filter(x=>x.trim());
     taskData[c].weekend = document.getElementById('editWeekend').value.split('\n').filter(x=>x.trim());
-    
-    const rewardLines = document.getElementById('editRewards').value.split('\n').filter(x=>x.trim());
-    taskData[c].rewards = rewardLines.map(line => {
-        const parts = line.split('-');
-        return { name: parts[0] ? parts[0].trim() : "Quà", point: parts[1] ? parseInt(parts[1].trim()) : 0 };
-    });
-
-    sync(); alert("Đã lưu cấu hình!");
+    sync(); alert("Đã lưu!");
 }
 
-function login() { if(prompt("Mật khẩu:")==="1") { isAdmin=true; document.getElementById('adminPanel').classList.remove('hidden'); render(); }}
-function setTab(t) {
+let isAdmin = false;
+function login() { if(prompt("Pass:")==="1") { 
+    isAdmin=true; 
+    document.getElementById('adminArea').classList.remove('hidden'); 
+    showTab('approve');
+    render(); 
+}}
+
+function showTab(t) {
     document.getElementById('tabApprove').className = t==='approve' ? '' : 'hidden';
     document.getElementById('tabConfig').className = t==='config' ? '' : 'hidden';
+}
+
+function sendTG(msg) {
+    fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage?chat_id=${TG_CHATID}&text=${encodeURIComponent(msg)}`);
 }
 </script>
 </body>
