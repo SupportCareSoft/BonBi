@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BON & BI PRO MAX CLOUD</title>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+    
+    <style>
+        :root { --primary: #4a90e2; --success: #2ecc71; --warning: #f1c40f; --danger: #e74c3c; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 10px; color: #333; }
+        .container { max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        
+        .avatar-container { text-align: center; margin-bottom: 10px; }
+        .avatar { width: 100px; height: 100px; border-radius: 50%; border: 4px solid var(--primary); object-fit: cover; background: #eee; transition: 0.3s; }
+        
+        h1 { text-align: center; color: var(--primary); margin-top: 0; }
+        .day-info { text-align: center; font-weight: bold; color: #666; margin-bottom: 15px; font-size: 0.9em; }
+        
+        select, input, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 12px; margin: 5px 0; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 16px; }
+        
+        .btn-main { background: var(--primary); color: white; }
+        .btn-admin { background: #6c757d; color: white; margin-top: 20px; }
+        
+        .task { display: flex; align-items: center; justify-content: space-between; padding: 15px; margin-top: 10px; border-radius: 10px; border-left: 5px solid #ddd; background: #f9f9f9; }
+        .task.done { border-left-color: var(--success); background: #e8f5e9; }
+        .task.pending { border-left-color: var(--warning); background: #fffde7; }
+        .task.missed { border-left-color: var(--danger); background: #ffebee; opacity: 0.8; }
+        
+        .task-info { flex-grow: 1; margin-right: 10px; }
+        .task-status { font-size: 0.75em; font-weight: bold; text-transform: uppercase; margin-top: 4px; }
+        .btn-action { width: auto; padding: 8px 15px; margin: 0; font-size: 0.9em; }
+
+        .admin-box { background: #f8f9fa; padding: 15px; border-radius: 10px; border: 2px solid #ddd; margin-top: 20px; }
+        .score-board { background: var(--primary); color: white; padding: 15px; border-radius: 10px; text-align: center; margin: 15px 0; }
+        .reward-item { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+        .btn-danger { background: var(--danger); color: white; }
+        .tab-group { display: flex; gap: 5px; margin-bottom: 10px; }
+        .loading { text-align: center; color: var(--primary); font-weight: bold; padding: 20px; }
+    </style>
+</head>
+<body>
+
+<div id="loading" class="loading">正在 kết nối dữ liệu đám mây...</div>
+
+<div class="container" id="mainApp" style="display:none">
+    <div class="avatar-container">
+        <img id="childAvatar" class="avatar" src="" alt="Avatar">
+    </div>
+    <h1 id="greeting">BÉ BON & BI</h1>
+    <div id="displayDate" class="day-info"></div>
+
+    <label>👤 Chọn bé đang xem:</label>
+    <select id="childSelect" onchange="render()">
+        <option value="BON">BON</option>
+        <option value="BI">BI</option>
+    </select>
+
+    <div class="score-board">
+        <div style="font-size: 0.9em;">ĐIỂM TÍCH LŨY</div>
+        <div style="font-size: 2em; font-weight: bold;"><span id="score">0</span> ⭐</div>
+    </div>
+
+    <div id="taskList"></div>
+
+    <h3>🎁 Quà mục tiêu</h3>
+    <div id="rewardList"></div>
+
+    <button class="btn-admin" onclick="login()">🔐 Chế độ Bố Mẹ</button>
+
+    <div id="adminPanel" style="display:none" class="admin-box">
+        <h3>🛠 Quản lý: 
+            <select id="adminChild" onchange="render()" style="width:auto; display:inline">
+                <option value="BON">BON</option>
+                <option value="BI">BI</option>
+            </select>
+        </h3>
+        
+        <div class="tab-group">
+            <button onclick="showTab('config')" class="btn-main">Cài việc</button>
+            <button onclick="showTab('approve')" style="background:var(--success); color:white">Duyệt/Phạt</button>
+        </div>
+
+        <div id="configTab">
+            <p><b>📝 Việc Ngày Thường:</b></p>
+            <textarea id="tasksWeekday" rows="3"></textarea>
+            <p><b>🎉 Việc Cuối Tuần:</b></p>
+            <textarea id="tasksWeekend" rows="3"></textarea>
+            <button class="btn-main" onclick="saveTasks()">Lưu vào Cloud</button>
+            <hr>
+            <p><b>🎁 Thêm quà mới:</b></p>
+            <input id="rewardText" placeholder="Tên quà">
+            <input id="rewardPoint" type="number" placeholder="Điểm">
+            <button class="btn-main" style="background:#e67e22" onclick="addReward()">Thêm quà</button>
+        </div>
+
+        <div id="approveTab" style="display:none">
+            <h4>✅ Duyệt việc hôm nay:</h4>
+            <div id="approveList"></div>
+        </div>
+
+        <button onclick="logout()" style="background:#333; color:white; margin-top:20px">🔓 Thoát quản lý</button>
+    </div>
+</div>
+
+<script>
+// --- CẤU HÌNH FIREBASE ---
+const firebaseConfig = {
+  apiKey: "AIzaSyCuQCluWc07QOWpAC5lGCxMeOGoujq4k8w",
+  authDomain: "bon-bi.firebaseapp.com",
+  projectId: "bon-bi",
+  storageBucket: "bon-bi.firebasestorage.app",
+  messagingSenderId: "988400970351",
+  appId: "1:988400970351:web:21e9181950114225417b9a",
+  measurementId: "G-TNPNS19WYL",
+  databaseURL: "https://bon-bi-default-rtdb.firebaseio.com/" // Tự động thêm dựa trên projectId
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+const PASSWORD = "1";
+let isAdmin = false;
+
+// Link ảnh (Thay link trực tiếp tại đây)
+const childAvatars = {
+    BON: "https://i.postimg.cc/G9vhLbhg/Bon.jpg", 
+    BI: "https://i.postimg.cc/hhVPDKP0/Bi.jpg"
+};
+
+let taskData = {
+    BON: { weekday: ["Đánh răng", "Học bài"], weekend: ["Dọn đồ chơi"] },
+    BI: { weekday: ["Ăn sáng", "Học tiếng Anh"], weekend: ["Tưới cây"] }
+};
+let logs = {};
+let rewards = [{text: "Đi công viên", point: 10}];
+
+// --- KẾT NỐI CLOUD ---
+db.ref('bonbi_data').on('value', (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+        if(data.taskData) taskData = data.taskData;
+        if(data.logs) logs = data.logs;
+        if(data.rewards) rewards = data.rewards;
+    }
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
+    render();
+});
+
+function sync() {
+    db.ref('bonbi_data').set({
+        taskData: taskData,
+        logs: logs,
+        rewards: rewards
+    });
+}
+
+// --- LOGIC NGÀY THÁNG ---
+function getDayType() {
+    const day = new Date().getDay();
+    return (day === 0 || day === 6) ? 'weekend' : 'weekday';
+}
+function today() { return new Date().toISOString().split('T')[0]; }
+
+function ensureToday(c) {
+    let d = today();
+    let type = getDayType();
+    if(!logs[c]) logs[c] = {};
+    if(!logs[c][d]) {
+        logs[c][d] = (taskData[c][type] || []).map(t => ({text: t, status: 'not'}));
+    }
+}
+
+// --- ACTIONS ---
+function clickTask(i) {
+    let c = document.getElementById('childSelect').value;
+    logs[c][today()][i].status = 'pending';
+    sync();
+}
+
+function approveTask(i) {
+    let ac = document.getElementById('adminChild').value;
+    logs[ac][today()][i].status = 'done';
+    sync();
+}
+
+function failTask(i) {
+    let ac = document.getElementById('adminChild').value;
+    if(confirm("Xác nhận bé quên làm và TRỪ 1 điểm?")) {
+        logs[ac][today()][i].status = 'missed';
+        sync();
+    }
+}
+
+function saveTasks() {
+    let ac = document.getElementById('adminChild').value;
+    taskData[ac].weekday = document.getElementById('tasksWeekday').value.split('\n').filter(x => x.trim());
+    taskData[ac].weekend = document.getElementById('tasksWeekend').value.split('\n').filter(x => x.trim());
+    sync();
+    alert("Đã lưu việc cho " + ac);
+}
+
+function addReward() {
+    let t = document.getElementById('rewardText').value;
+    let p = parseInt(document.getElementById('rewardPoint').value);
+    if(t && p) {
+        rewards.push({text: t, point: p});
+        sync();
+    }
+}
+
+// --- GIAO DIỆN ---
+function login() {
+    if(prompt("Mật khẩu bố mẹ:") === PASSWORD) {
+        isAdmin = true;
+        document.getElementById('adminPanel').style.display = 'block';
+        render();
+    }
+}
+
+function logout() { isAdmin = false; document.getElementById('adminPanel').style.display = 'none'; render();}
+
+function showTab(tab) {
+    document.getElementById('configTab').style.display = tab === 'config' ? 'block' : 'none';
+    document.getElementById('approveTab').style.display = tab === 'approve' ? 'block' : 'none';
+}
+
+function calcScore(c) {
+    let total = 0;
+    if(!logs[c]) return 0;
+    for(let d in logs[c]) {
+        logs[c][d].forEach(t => { 
+            if(t.status === 'done') total++; 
+            if(t.status === 'missed') total--; 
+        });
+    }
+    return total;
+}
+
+function render() {
+    let c = document.getElementById('childSelect').value;
+    let d = today();
+    let type = getDayType();
+    
+    // Avatar
+    const avatarImg = document.getElementById('childAvatar');
+    avatarImg.src = childAvatars[c];
+    avatarImg.onerror = function() { this.src = "https://cdn-icons-png.flaticon.com/512/1177/1177568.png"; };
+    
+    document.getElementById('greeting').innerText = "BÉ " + c;
+    document.getElementById('displayDate').innerText = (type === 'weekend' ? "🎉 Cuối tuần" : "📅 Ngày thường") + " - " + d;
+    
+    ensureToday(c);
+
+    // List việc bé thấy
+    let list = document.getElementById('taskList');
+    list.innerHTML = '<h3>📝 Việc hôm nay:</h3>';
+    logs[c][d].forEach((t, i) => {
+        let div = document.createElement('div');
+        div.className = `task ${t.status}`;
+        let st = t.status === 'done' ? '✅ Giỏi lắm!' : (t.status === 'pending' ? '⏳ Đợi duyệt' : (t.status === 'missed' ? '❌ Quên làm (-1đ)' : '⭕ Chưa xong'));
+        div.innerHTML = `<div class="task-info"><b>${t.text}</b><div class="task-status">${st}</div></div>
+            ${t.status === 'not' ? `<button class="btn-action btn-main" onclick="clickTask(${i})">Xong!</button>` : ''}`;
+        list.appendChild(div);
+    });
+
+    // Admin Panel
+    if(isAdmin) {
+        let ac = document.getElementById('adminChild').value;
+        ensureToday(ac);
+        let appList = document.getElementById('approveList');
+        appList.innerHTML = '';
+        logs[ac][d].forEach((t, i) => {
+            if(t.status !== 'done' && t.status !== 'missed') {
+                let div = document.createElement('div');
+                div.className = 'task ' + t.status;
+                div.innerHTML = `<div style="flex:1"><b>${t.text}</b></div>
+                    <div style="display:flex; gap:5px">
+                        <button class="btn-action" style="background:var(--success); color:white" onclick="approveTask(${i})">Duyệt</button>
+                        <button class="btn-action btn-danger" onclick="failTask(${i})">Phạt</button>
+                    </div>`;
+                appList.appendChild(div);
+            }
+        });
+        document.getElementById('tasksWeekday').value = (taskData[ac].weekday || []).join('\n');
+        document.getElementById('tasksWeekend').value = (taskData[ac].weekend || []).join('\n');
+    }
+
+    // Điểm & Quà
+    let score = calcScore(c);
+    document.getElementById('score').innerText = score;
+    let rdiv = document.getElementById('rewardList');
+    rdiv.innerHTML = '';
+    rewards.forEach(r => {
+        let can = score >= r.point;
+        rdiv.innerHTML += `<div class="reward-item"><span>${can?'🎁':'🔒'} ${r.text}</span><b>${r.point}đ</b></div>`;
+    });
+}
+</script>
+</body>
+</html>
