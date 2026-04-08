@@ -3,306 +3,265 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BON & BI PRO MAX CLOUD</title>
+    <title>BON & BI PRO DASHBOARD</title>
     
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/5406/5406822.png">
-
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
-        :root { --primary: #4a90e2; --success: #2ecc71; --warning: #f1c40f; --danger: #e74c3c; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 10px; color: #333; margin: 0; }
-        .container { max-width: 500px; margin: auto; background: #fff; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        :root { --primary: #4a90e2; --success: #2ecc71; --warning: #f1c40f; --danger: #e74c3c; --dark: #2c3e50; --bg: #f0f2f5; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; padding: 10px; color: #333; }
+        .container { max-width: 500px; margin: auto; background: #fff; padding: 20px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
         
-        .avatar-container { text-align: center; margin-bottom: 10px; }
-        .avatar { width: 90px; height: 90px; border-radius: 50%; border: 4px solid var(--primary); object-fit: cover; background: #eee; }
-        
-        h1 { text-align: center; color: var(--primary); margin: 10px 0 5px 0; font-size: 1.5em; }
-        .day-info { text-align: center; font-weight: bold; color: #666; margin-bottom: 15px; font-size: 0.85em; }
-        
-        select, input, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 12px; margin: 5px 0; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 16px; }
-        button:active { transform: scale(0.96); }
-        
-        .btn-main { background: var(--primary); color: white; }
-        .btn-admin { background: none; color: #bbb; border: 1px dashed #ddd; margin-top: 30px; font-size: 0.8em; }
-        
-        .task { display: flex; align-items: center; justify-content: space-between; padding: 15px; margin-top: 10px; border-radius: 12px; border-left: 6px solid #ddd; background: #f9f9f9; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
-        .task.done { border-left-color: var(--success); background: #f0fff4; }
-        .task.pending { border-left-color: var(--warning); background: #fffdf0; }
-        .task.missed { border-left-color: var(--danger); background: #fff5f5; opacity: 0.9; }
-        
-        .task-info { flex-grow: 1; margin-right: 10px; }
-        .task-status { font-size: 0.7em; font-weight: bold; text-transform: uppercase; margin-top: 4px; color: #888; }
-        .btn-action { width: auto; padding: 8px 18px; margin: 0; font-size: 0.9em; }
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+        .avatar { width: 80px; height: 80px; border-radius: 50%; border: 4px solid var(--primary); object-fit: cover; background: #eee; }
+        h1 { margin: 0; font-size: 1.6em; color: var(--primary); }
+        .date-info { font-size: 0.85em; color: #888; font-weight: bold; }
 
-        .admin-box { background: #f8f9fa; padding: 15px; border-radius: 15px; border: 2px solid #ddd; margin-top: 20px; }
-        .score-board { background: linear-gradient(135deg, var(--primary) 0%, #357abd 100%); color: white; padding: 20px; border-radius: 15px; text-align: center; margin: 15px 0; }
-        .reward-item { padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-        .tab-group { display: flex; gap: 5px; margin-bottom: 10px; }
-        .loading { text-align: center; color: var(--primary); font-weight: bold; padding: 50px; }
+        .score-card { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; padding: 20px; border-radius: 20px; text-align: center; margin: 15px 0;
+            box-shadow: 0 4px 15px rgba(118, 75, 162, 0.3);
+        }
+        
+        .task-item { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 15px; margin-bottom: 12px; border-radius: 15px; 
+            background: #fff; border-left: 6px solid #ddd;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .task-item.done { border-left-color: var(--success); background: #f0fff4; }
+        .task-item.pending { border-left-color: var(--warning); background: #fffdf0; }
+        .task-item.missed { border-left-color: var(--danger); background: #fff5f5; }
+
+        button { border: none; border-radius: 12px; padding: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:active { transform: scale(0.95); }
+        .btn-done { background: var(--primary); color: white; padding: 8px 20px; }
+        
+        .report-area { margin-top: 30px; padding-top: 20px; border-top: 2px solid #eee; }
+        .chart-box { height: 250px; margin-top: 15px; }
+        .admin-box { background: #f8f9fa; padding: 15px; border-radius: 20px; border: 2px solid #ddd; margin-top: 25px; }
+        
+        select, textarea, input { 
+            width: 100%; padding: 12px; margin: 10px 0; border-radius: 12px; 
+            border: 1px solid #ddd; font-size: 16px; box-sizing: border-box;
+        }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-<div id="loading" class="loading">🚀 Đang tải dữ liệu của Bon & Bi...</div>
+<div id="loading" style="text-align:center; padding:100px; color:var(--primary); font-weight:bold;">🚀 Đang kết nối mây...</div>
 
-<div class="container" id="mainApp" style="display:none">
-    <div class="avatar-container">
-        <img id="childAvatar" class="avatar" src="" alt="Avatar">
+<div class="container hidden" id="mainApp">
+    <div class="header">
+        <div>
+            <h1 id="childName">BÉ BON</h1>
+            <div id="todayDate" class="date-info"></div>
+        </div>
+        <img id="childAvatar" class="avatar" src="" alt="avatar">
     </div>
-    <h1 id="greeting">BÉ BON & BI</h1>
-    <div id="displayDate" class="day-info"></div>
 
-    <label style="font-size: 0.8em; color: #888; margin-left: 5px;">👤 ĐANG XEM:</label>
-    <select id="childSelect" onchange="render()">
-        <option value="BON">Bé BON</option>
-        <option value="BI">Bé BI</option>
+    <select id="selectChild" onchange="render()">
+        <option value="BON">👤 Bé BON</option>
+        <option value="BI">👤 Bé BI</option>
     </select>
 
-    <div class="score-board">
-        <div style="font-size: 0.8em; opacity: 0.9; letter-spacing: 1px;">ĐIỂM TÍCH LŨY</div>
-        <div style="font-size: 3em; font-weight: bold;"><span id="score">0</span> ⭐</div>
+    <div class="score-card">
+        <div style="font-size: 0.8em; opacity: 0.9;">⭐ TỔNG ĐIỂM TÍCH LŨY</div>
+        <div style="font-size: 3em; font-weight: bold;" id="displayScore">0</div>
     </div>
 
     <div id="taskList"></div>
 
-    <h3 style="margin-top: 25px; border-bottom: 2px solid #f0f2f5; padding-bottom: 10px;">🎁 Quà của bé</h3>
-    <div id="rewardList"></div>
+    <div class="report-area">
+        <h3 style="margin:0">📊 Thống kê tháng <span id="curMonth"></span></h3>
+        <div style="display:flex; justify-content: space-around; margin: 10px 0; font-size: 0.9em;">
+            <div style="color:var(--primary)">BON: <b id="monthScoreBon">0</b>đ</div>
+            <div style="color:var(--danger)">BI: <b id="monthScoreBi">0</b>đ</div>
+        </div>
+        <div class="chart-box">
+            <canvas id="scoreChart"></canvas>
+        </div>
+    </div>
 
-    <button class="btn-admin" onclick="login()">🔐 CHẾ ĐỘ QUẢN LÝ</button>
+    <button onclick="login()" style="background:none; color:#bbb; width:100%; margin-top:40px; border:1px dashed #ccc; font-size:0.8em">🔐 CHẾ ĐỘ BỐ MẸ</button>
 
-    <div id="adminPanel" style="display:none" class="admin-box">
-        <h3 style="text-align:center; margin-top:0">🛠 QUẢN LÝ: 
-            <select id="adminChild" onchange="render()" style="width:auto; display:inline; padding:5px">
-                <option value="BON">BON</option>
-                <option value="BI">BI</option>
-            </select>
-        </h3>
-        
-        <div class="tab-group">
-            <button onclick="showTab('config')" style="background:#eee; flex:1">Cài việc</button>
-            <button onclick="showTab('approve')" style="background:var(--success); color:white; flex:1">Duyệt việc</button>
+    <div id="adminPanel" class="admin-box hidden">
+        <h3 style="text-align:center; margin-top:0">🛠 QUẢN LÝ</h3>
+        <div style="display:flex; gap:5px">
+            <button onclick="setTab('approve')" style="flex:1; background:var(--success); color:white">Duyệt việc</button>
+            <button onclick="setTab('config')" style="flex:1; background:#eee">Cài đặt</button>
         </div>
 
-        <div id="configTab">
-            <p style="margin-bottom:5px"><b>📝 Việc Ngày Thường:</b></p>
-            <textarea id="tasksWeekday" rows="4" placeholder="Ví dụ:&#10;Đánh răng&#10;Học bài"></textarea>
-            <p style="margin-bottom:5px"><b>🎉 Việc Cuối Tuần:</b></p>
-            <textarea id="tasksWeekend" rows="4" placeholder="Ví dụ:&#10;Quét nhà&#10;Tưới cây"></textarea>
-            <button class="btn-main" onclick="saveTasks()">LƯU LÊN CLOUD</button>
-            <hr style="margin:20px 0; border:0; border-top:1px solid #ddd">
-            <p style="margin-bottom:5px"><b>🎁 Thêm phần thưởng:</b></p>
-            <input id="rewardText" placeholder="Tên món quà">
-            <input id="rewardPoint" type="number" placeholder="Số điểm cần">
-            <button class="btn-main" style="background:#e67e22" onclick="addReward()">THÊM QUÀ</button>
-        </div>
-
-        <div id="approveTab" style="display:none">
-            <h4 style="margin-top:0">✅ Chờ duyệt hôm nay:</h4>
+        <div id="tabApprove" class="hidden">
+            <h4 style="margin:15px 0 5px 0">Việc chờ duyệt:</h4>
             <div id="approveList"></div>
         </div>
 
-        <button onclick="logout()" style="background:#333; color:white; margin-top:20px">ĐÓNG QUẢN LÝ</button>
+        <div id="tabConfig" class="hidden">
+            <label>📝 Việc T2 - T6:</label>
+            <textarea id="editWeekday" rows="4" placeholder="Mỗi dòng 1 việc"></textarea>
+            <label>🎉 Việc T7 - CN:</label>
+            <textarea id="editWeekend" rows="4" placeholder="Mỗi dòng 1 việc"></textarea>
+            <button onclick="saveTasks()" style="background:var(--primary); color:white; width:100%">LƯU THAY ĐỔI</button>
+        </div>
+        
+        <button onclick="location.reload()" style="background:#333; color:white; width:100%; margin-top:15px">THOÁT QUẢN LÝ</button>
     </div>
 </div>
 
 <script>
 // --- CẤU HÌNH FIREBASE ---
 const firebaseConfig = {
-  apiKey: "AIzaSyCuQCluWc07QOWpAC5lGCxMeOGoujq4k8w",
-  authDomain: "bon-bi.firebaseapp.com",
-  projectId: "bon-bi",
-  storageBucket: "bon-bi.firebasestorage.app",
-  messagingSenderId: "988400970351",
-  appId: "1:988400970351:web:21e9181950114225417b9a",
-  measurementId: "G-TNPNS19WYL",
-  databaseURL: "https://bon-bi-default-rtdb.firebaseio.com/"
+    apiKey: "AIzaSyCuQCluWc07QOWpAC5lGCxMeOGoujq4k8w",
+    authDomain: "bon-bi.firebaseapp.com",
+    projectId: "bon-bi",
+    storageBucket: "bon-bi.firebasestorage.app",
+    messagingSenderId: "988400970351",
+    appId: "1:988400970351:web:21e9181950114225417b9a",
+    databaseURL: "https://bon-bi-default-rtdb.firebaseio.com/"
 };
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-const PASSWORD = "1";
-let isAdmin = false;
-
-// Link ảnh con
-const childAvatars = {
-    BON: "https://i.postimg.cc/G9vhLbhg/Bon.jpg", 
+const avatars = {
+    BON: "https://i.postimg.cc/G9vhLbhg/Bon.jpg",
     BI: "https://i.postimg.cc/hhVPDKP0/Bi.jpg"
 };
 
-let taskData = {
-    BON: { weekday: ["Đánh răng", "Học bài"], weekend: ["Dọn đồ chơi"] },
-    BI: { weekday: ["Ăn sáng", "Học tiếng Anh"], weekend: ["Tưới cây"] }
-};
+let taskData = { BON: { weekday: [], weekend: [] }, BI: { weekday: [], weekend: [] } };
 let logs = {};
-let rewards = [{text: "Kem ốc quế", point: 5}, {text: "Đi công viên", point: 10}];
+let myChart = null;
+let isAdmin = false;
 
-// --- KẾT NỐI VÀ ĐỒNG BỘ ---
-db.ref('bonbi_data').on('value', (snapshot) => {
-    const data = snapshot.val();
-    if (data) {
-        if(data.taskData) taskData = data.taskData;
-        if(data.logs) logs = data.logs;
-        if(data.rewards) rewards = data.rewards;
+// --- KẾT NỐI DỮ LIỆU ---
+db.ref('bonbi_data').on('value', (snap) => {
+    const data = snap.val();
+    if(data) {
+        taskData = data.taskData || taskData;
+        logs = data.logs || logs;
     }
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('mainApp').style.display = 'block';
+    document.getElementById('loading').classList.add('hidden');
+    document.getElementById('mainApp').classList.remove('hidden');
     render();
+    drawChart();
 });
 
-function sync() {
-    db.ref('bonbi_data').set({ taskData, logs, rewards });
-}
+function sync() { db.ref('bonbi_data').set({ taskData, logs }); }
 
-function getDayType() {
-    const day = new Date().getDay();
-    return (day === 0 || day === 6) ? 'weekend' : 'weekday';
-}
 function today() { return new Date().toISOString().split('T')[0]; }
+function getDayType() { const d = new Date().getDay(); return (d===0 || d===6) ? 'weekend' : 'weekday'; }
 
-function ensureToday(c) {
-    let d = today();
-    let type = getDayType();
+function render() {
+    const c = document.getElementById('selectChild').value;
+    const d = today();
+    const type = getDayType();
+
+    document.getElementById('childName').innerText = "BÉ " + c;
+    document.getElementById('childAvatar').src = avatars[c];
+    document.getElementById('todayDate').innerText = (type==='weekend' ? "CUỐI TUẦN " : "NGÀY THƯỜNG ") + d;
+
     if(!logs[c]) logs[c] = {};
-    if(!logs[c][d]) {
-        logs[c][d] = (taskData[c][type] || []).map(t => ({text: t, status: 'not'}));
+    if(!logs[c][d]) logs[c][d] = (taskData[c][type] || []).map(t => ({text: t, status: 'not'}));
+
+    let h = "";
+    logs[c][d].forEach((t, i) => {
+        let stText = t.status === 'done' ? '✅ XONG' : t.status === 'pending' ? '⏳ CHỜ' : t.status === 'missed' ? '❌ PHẠT' : '⭕ CHƯA';
+        h += `<div class="task-item ${t.status}">
+            <div><b>${t.text}</b><br><small style="color:#999">${stText}</small></div>
+            ${t.status==='not' ? `<button class="btn-done" onclick="finishTask('${c}', ${i})">Xong</button>` : ''}
+        </div>`;
+    });
+    document.getElementById('taskList').innerHTML = h;
+
+    let total = 0;
+    for(let date in logs[c]) {
+        logs[c][date].forEach(t => { if(t.status==='done') total++; if(t.status==='missed') total--; });
+    }
+    document.getElementById('displayScore').innerText = total;
+
+    if(isAdmin) {
+        let ah = "";
+        logs[c][d].forEach((t, i) => {
+            if(t.status === 'pending' || t.status === 'not') {
+                ah += `<div class="task-item">
+                    <div style="flex:1"><b>${t.text}</b></div>
+                    <div style="display:flex; gap:5px">
+                        <button onclick="verify(${i}, true)" style="background:var(--success); color:white; padding:5px 10px">Duyệt</button>
+                        <button onclick="verify(${i}, false)" style="background:var(--danger); color:white; padding:5px 10px">Phạt</button>
+                    </div>
+                </div>`;
+            }
+        });
+        document.getElementById('approveList').innerHTML = ah || "Hết việc chờ duyệt!";
+        document.getElementById('editWeekday').value = (taskData[c].weekday || []).join('\n');
+        document.getElementById('editWeekend').value = (taskData[c].weekend || []).join('\n');
     }
 }
 
-// --- HÀNH ĐỘNG ---
-function clickTask(i) {
-    let c = document.getElementById('childSelect').value;
-    logs[c][today()][i].status = 'pending';
-    sync();
-}
+function drawChart() {
+    const ctx = document.getElementById('scoreChart').getContext('2d');
+    const now = new Date();
+    const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    document.getElementById('curMonth').innerText = now.getMonth() + 1;
+    
+    let labels = [], dataBon = [], dataBi = [], sumBon = 0, sumBi = 0;
 
-function approveTask(i) {
-    let ac = document.getElementById('adminChild').value;
-    logs[ac][today()][i].status = 'done';
-    sync();
-}
+    for (let i = 1; i <= days; i++) {
+        labels.push(i);
+        let dStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+        
+        const calcDay = (child) => {
+            let s = 0;
+            if(logs[child] && logs[child][dStr]) {
+                logs[child][dStr].forEach(t => { if(t.status==='done') s++; if(t.status==='missed') s--; });
+            }
+            return s;
+        };
 
-function failTask(i) {
-    let ac = document.getElementById('adminChild').value;
-    if(confirm("Xác nhận bé quên làm và TRỪ 1 điểm?")) {
-        logs[ac][today()][i].status = 'missed';
-        sync();
+        let sBon = calcDay('BON'); let sBi = calcDay('BI');
+        dataBon.push(sBon); sumBon += sBon;
+        dataBi.push(sBi); sumBi += sBi;
     }
+
+    document.getElementById('monthScoreBon').innerText = sumBon;
+    document.getElementById('monthScoreBi').innerText = sumBi;
+
+    if (myChart) myChart.destroy();
+    myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                { label: 'BON', data: dataBon, backgroundColor: '#4a90e2' },
+                { label: 'BI', data: dataBi, backgroundColor: '#e74c3c' }
+            ]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+    });
+}
+
+function finishTask(c, i) { logs[c][today()][i].status = 'pending'; sync(); }
+function verify(i, ok) { 
+    const c = document.getElementById('selectChild').value;
+    logs[c][today()][i].status = ok ? 'done' : 'missed'; 
+    sync(); 
 }
 
 function saveTasks() {
-    let ac = document.getElementById('adminChild').value;
-    taskData[ac].weekday = document.getElementById('tasksWeekday').value.split('\n').filter(x => x.trim());
-    taskData[ac].weekend = document.getElementById('tasksWeekend').value.split('\n').filter(x => x.trim());
-    sync();
-    alert("Đã cập nhật việc cho " + ac);
+    const c = document.getElementById('selectChild').value;
+    taskData[c].weekday = document.getElementById('editWeekday').value.split('\n').filter(x=>x.trim());
+    taskData[c].weekend = document.getElementById('editWeekend').value.split('\n').filter(x=>x.trim());
+    sync(); alert("Đã lưu!");
 }
 
-function addReward() {
-    let t = document.getElementById('rewardText').value;
-    let p = parseInt(document.getElementById('rewardPoint').value);
-    if(t && p) {
-        rewards.push({text: t, point: p});
-        sync();
-        document.getElementById('rewardText').value = '';
-        document.getElementById('rewardPoint').value = '';
-    }
-}
-
-// --- GIAO DIỆN ---
-function login() {
-    if(prompt("Mật khẩu bố mẹ:") === PASSWORD) {
-        isAdmin = true;
-        document.getElementById('adminPanel').style.display = 'block';
-        render();
-    }
-}
-function logout() { isAdmin = false; document.getElementById('adminPanel').style.display = 'none'; render();}
-function showTab(tab) {
-    document.getElementById('configTab').style.display = tab === 'config' ? 'block' : 'none';
-    document.getElementById('approveTab').style.display = tab === 'approve' ? 'block' : 'none';
-}
-
-function calcScore(c) {
-    let total = 0;
-    if(!logs[c]) return 0;
-    for(let d in logs[c]) {
-        logs[c][d].forEach(t => { 
-            if(t.status === 'done') total++; 
-            if(t.status === 'missed') total--; 
-        });
-    }
-    return total;
-}
-
-function render() {
-    let c = document.getElementById('childSelect').value;
-    let d = today();
-    let type = getDayType();
-    
-    document.getElementById('childAvatar').src = childAvatars[c];
-    document.getElementById('greeting').innerText = "BÉ " + c;
-    document.getElementById('displayDate').innerText = (type === 'weekend' ? "🎉 Cuối tuần" : "📅 Ngày thường") + " - " + d;
-    
-    ensureToday(c);
-
-    // Render danh sách việc cho bé
-    let list = document.getElementById('taskList');
-    list.innerHTML = '<h3 style="font-size: 1em">📝 Việc cần làm:</h3>';
-    logs[c][d].forEach((t, i) => {
-        let div = document.createElement('div');
-        div.className = `task ${t.status}`;
-        let st = {
-            'done': '✅ Đã hoàn thành!',
-            'pending': '⏳ Đợi bố mẹ duyệt...',
-            'missed': '❌ Quên làm (Bị trừ điểm)',
-            'not': '⭕ Chưa xong'
-        }[t.status];
-        
-        div.innerHTML = `<div class="task-info"><b>${t.text}</b><div class="task-status">${st}</div></div>
-            ${t.status === 'not' ? `<button class="btn-action btn-main" onclick="clickTask(${i})">Xong</button>` : ''}`;
-        list.appendChild(div);
-    });
-
-    // Admin Duyệt và Phạt
-    if(isAdmin) {
-        let ac = document.getElementById('adminChild').value;
-        ensureToday(ac);
-        let appList = document.getElementById('approveList');
-        appList.innerHTML = '';
-        logs[ac][d].forEach((t, i) => {
-            if(t.status !== 'done' && t.status !== 'missed') {
-                let div = document.createElement('div');
-                div.className = 'task ' + t.status;
-                div.innerHTML = `<div style="flex:1"><b>${t.text}</b></div>
-                    <div style="display:flex; gap:5px">
-                        <button class="btn-action" style="background:var(--success); color:white" onclick="approveTask(${i})">Duyệt</button>
-                        <button class="btn-action" style="background:var(--danger); color:white" onclick="failTask(${i})">Phạt</button>
-                    </div>`;
-                appList.appendChild(div);
-            }
-        });
-        document.getElementById('tasksWeekday').value = (taskData[ac].weekday || []).join('\n');
-        document.getElementById('tasksWeekend').value = (taskData[ac].weekend || []).join('\n');
-    }
-
-    // Điểm & Quà
-    let score = calcScore(c);
-    document.getElementById('score').innerText = score;
-    let rdiv = document.getElementById('rewardList');
-    rdiv.innerHTML = '';
-    rewards.forEach(r => {
-        let can = score >= r.point;
-        rdiv.innerHTML += `<div class="reward-item">
-            <span>${can ? '🎁' : '🔒'} ${r.text}</span>
-            <b style="color:${can ? 'var(--success)' : '#999'}">${r.point} ⭐</b>
-        </div>`;
-    });
+function login() { if(prompt("Mật khẩu:")==="1") { isAdmin=true; document.getElementById('adminPanel').classList.remove('hidden'); render(); }}
+function setTab(t) {
+    document.getElementById('tabApprove').className = t==='approve' ? '' : 'hidden';
+    document.getElementById('tabConfig').className = t==='config' ? '' : 'hidden';
 }
 </script>
 </body>
