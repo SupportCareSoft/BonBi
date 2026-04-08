@@ -3,60 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BON & BI DASHBOARD</title>
+    <title>BON & BI - DASHBOARD</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
-        :root { --primary: #4a90e2; --success: #2ecc71; --warning: #f1c40f; --danger: #e74c3c; --bg: #f8faff; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; padding: 10px; color: #333; }
-        .container { max-width: 450px; margin: auto; background: #fff; padding: 15px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        :root { --primary: #4a90e2; --success: #2ecc71; --warning: #f1c40f; --danger: #e74c3c; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f7f9; margin: 0; padding: 10px; }
+        .container { max-width: 480px; margin: auto; background: #fff; padding: 20px; border-radius: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
         
-        /* Header & Avatar */
-        .header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
-        .avatar { width: 60px; height: 60px; border-radius: 20px; border: 3px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); object-fit: cover; }
+        /* Header */
+        .header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+        .avatar { width: 65px; height: 65px; border-radius: 50%; border: 3px solid var(--primary); object-fit: cover; background: #eee; }
         
-        /* Score Card */
-        .score-board { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 15px; border-radius: 20px; text-align: center; margin-bottom: 15px; position: relative; overflow: hidden; }
-        .score-board h2 { margin: 0; font-size: 2.5em; }
+        /* Điểm số */
+        .score-card { background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%); color: white; padding: 15px; border-radius: 20px; text-align: center; margin-bottom: 20px; }
+        .score-card h2 { margin: 5px 0 0 0; font-size: 2.5em; }
 
-        /* Tasks */
-        .task { display: flex; align-items: center; padding: 12px; margin-bottom: 8px; border-radius: 15px; background: #fdfdfd; border: 1px solid #f0f0f0; transition: 0.3s; }
-        .task.done { background: #f0fff4; border-color: #c6f6d5; }
-        .task.pending { background: #fffaf0; border-color: #feebc8; }
+        /* Công việc */
+        .task { display: flex; align-items: center; padding: 15px; margin-bottom: 10px; border-radius: 15px; background: #f9f9f9; border-left: 5px solid #ddd; }
+        .task.done { border-left-color: var(--success); background: #f0fff4; }
+        .task.pending { border-left-color: var(--warning); background: #fffdf0; }
         .task-info { flex: 1; }
-        .task-info b { font-size: 0.95em; display: block; }
-        .task-status { font-size: 0.7em; color: #999; font-weight: bold; }
+        .task-info b { font-size: 1em; color: #333; }
+        .task-status { font-size: 0.75em; display: block; margin-top: 3px; font-weight: bold; }
 
-        /* Buttons */
-        button { border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; }
-        .btn-done { background: var(--primary); color: white; padding: 8px 15px; }
-        .btn-redo { background: #f0f0f0; color: #888; padding: 5px 10px; font-size: 0.7em; margin-top: 4px; }
+        /* Nút bấm */
+        button { border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-xong { background: var(--primary); color: white; padding: 10px 20px; }
+        .btn-redo { background: #eee; color: #666; font-size: 0.7em; padding: 5px 10px; margin-top: 5px; }
 
-        /* Report Section - Thu nhỏ */
-        .report-section { background: #fff; border-radius: 20px; padding: 10px; margin-top: 20px; border: 1px solid #eee; }
-        .chart-container { position: relative; height: 180px; width: 100%; }
+        /* Báo cáo */
+        .chart-section { margin-top: 25px; padding: 15px; background: #fff; border-radius: 20px; border: 1px solid #eee; }
+        .chart-container { height: 160px; width: 100%; }
 
-        /* Admin Box */
-        .admin-box { background: #f9f9f9; padding: 15px; border-radius: 20px; margin-top: 20px; border: 1px dashed #ccc; }
-        textarea { width: 100%; border-radius: 10px; border: 1px solid #ddd; padding: 10px; font-size: 14px; margin-bottom: 10px; }
-        .tab-btn { flex: 1; padding: 8px; background: #eee; border-radius: 8px; font-size: 0.8em; }
-        .tab-active { background: var(--dark); color: white; }
-
-        select { width: 100%; padding: 10px; border-radius: 12px; border: 1px solid #ddd; margin-bottom: 10px; background: #fff; }
-        .reward-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f5f5f5; font-size: 0.9em; }
+        select { width: 100%; padding: 12px; border-radius: 15px; border: 1px solid #ddd; margin-bottom: 15px; font-size: 16px; background: #fff; }
+        .reward-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #f5f5f5; font-size: 0.95em; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <img id="childAvatar" class="avatar" src="">
+        <img id="childAvatar" class="avatar" src="https://i.postimg.cc/G9vhLbhg/Bon.jpg">
         <div>
-            <h3 id="greeting" style="margin:0">Chào con!</h3>
-            <small id="displayDate" style="color:#999"></small>
+            <h2 id="greeting" style="margin:0">Chào con!</h2>
+            <small id="displayDate" style="color:#888; font-weight: bold;"></small>
         </div>
     </div>
 
@@ -65,47 +59,42 @@
         <option value="BI">👤 Bé BI</option>
     </select>
 
-    <div class="score-board">
-        <small>ĐIỂM TÍCH LŨY</small>
+    <div class="score-card">
+        <small style="opacity:0.9; letter-spacing:1px">ĐIỂM TÍCH LŨY</small>
         <h2 id="score">0 ⭐</h2>
     </div>
 
     <div id="taskList"></div>
 
     <div style="margin-top:20px">
-        <h4 style="margin-bottom:10px; font-size:0.9em">🎁 ĐỔI QUÀ</h4>
-        <div id="rewardList" style="background:#fff9f0; padding:10px; border-radius:15px"></div>
+        <h3 style="font-size:1.1em; border-left:4px solid var(--warning); padding-left:10px">🎁 Quà mục tiêu</h3>
+        <div id="rewardList" style="background:#fffaf0; border-radius:15px; padding:5px"></div>
     </div>
 
-    <div class="report-section">
-        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 10px">
-            <b style="font-size:0.8em">📊 TIẾN ĐỘ THÁNG</b>
-            <small style="color:var(--primary); font-weight:bold" id="monthLabel"></small>
-        </div>
-        <div class="chart-container">
-            <canvas id="scoreChart"></canvas>
-        </div>
+    <div class="chart-section">
+        <b style="font-size:0.85em; color:#555">📊 TIẾN ĐỘ THÁNG NÀY</b>
+        <div class="chart-container"><canvas id="myChart"></canvas></div>
     </div>
 
-    <button onclick="login()" style="background:none; color:#ccc; width:100%; margin-top:20px; font-size:0.7em">🔐 Quản lý</button>
+    <button onclick="login()" style="background:none; color:#bbb; width:100%; margin-top:25px; font-size:0.8em">🔐 Chế độ Bố Mẹ</button>
 
-    <div id="adminPanel" style="display:none" class="admin-box">
-        <h4 style="text-align:center; margin-top:0">🛠 ADMIN PANEL</h4>
+    <div id="adminPanel" style="display:none; background:#f9f9f9; padding:20px; border-radius:20px; margin-top:20px; border:1px dashed #ccc">
+        <h3 style="text-align:center; margin-top:0">🛠 QUẢN LÝ</h3>
         <select id="adminChild" onchange="render()">
-            <option value="BON">Cài cho BON</option>
-            <option value="BI">Cài cho BI</option>
+            <option value="BON">Cài việc BON</option>
+            <option value="BI">Cài việc BI</button>
         </select>
-        <div style="display:flex; gap:5px; margin-bottom:10px">
-            <button onclick="showTab('config')" class="tab-btn">Cài việc</button>
-            <button onclick="showTab('approve')" class="tab-btn">Duyệt việc</button>
+        <div style="display:flex; gap:10px; margin-bottom:15px">
+            <button onclick="showTab('config')" style="flex:1; padding:10px; background:#eee">Cài việc</button>
+            <button onclick="showTab('approve')" style="flex:1; padding:10px; background:var(--success); color:white">Duyệt việc</button>
         </div>
         <div id="configTab">
-            <textarea id="tasksWeekday" rows="3" placeholder="Việc ngày thường..."></textarea>
-            <textarea id="tasksWeekend" rows="3" placeholder="Việc cuối tuần..."></textarea>
-            <button onclick="saveTasks()" style="background:var(--primary); color:white; width:100%; padding:10px">Lưu Cloud</button>
+            <textarea id="tasksWeekday" rows="4" style="width:100%; border-radius:10px; padding:10px; margin-bottom:10px" placeholder="Việc ngày thường..."></textarea>
+            <textarea id="tasksWeekend" rows="4" style="width:100%; border-radius:10px; padding:10px; margin-bottom:10px" placeholder="Việc cuối tuần..."></textarea>
+            <button onclick="saveTasks()" style="background:var(--primary); color:white; width:100%; padding:15px">LƯU CÀI ĐẶT</button>
         </div>
         <div id="approveTab" style="display:none"><div id="approveList"></div></div>
-        <button onclick="logout()" style="width:100%; margin-top:10px; background:#333; color:#fff">Đóng</button>
+        <button onclick="document.getElementById('adminPanel').style.display='none'" style="width:100%; margin-top:15px; background:#333; color:white; padding:10px">THOÁT</button>
     </div>
 </div>
 
@@ -122,82 +111,88 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-let isAdmin = false, myChart = null;
+let myChart = null, isAdmin = false;
 
 const avatars = { BON: "https://i.postimg.cc/G9vhLbhg/Bon.jpg", BI: "https://i.postimg.cc/hhVPDKP0/Bi.jpg" };
 let taskData = { BON: { weekday: [], weekend: [] }, BI: { weekday: [], weekend: [] } };
-let logs = {}, rewards = [{text: "Kem", point: 5}, {text: "Công viên", point: 20}];
+let logs = {}, rewards = [{t:"Ăn kem", p:20}, {t:"Uống nước cam", p:50}, {t:"Mua đồ chơi", p:500}];
 
-db.ref('bonbi_v6').on('value', (snap) => {
+// ĐỒNG BỘ DỮ LIỆU - SỬ DỤNG LẠI bonbi_data ĐỂ HIỆN LẠI VIỆC CŨ
+db.ref('bonbi_data').on('value', (snap) => {
     const data = snap.val();
-    if (data) { 
+    if (data) {
         if(data.taskData) taskData = data.taskData;
         if(data.logs) logs = data.logs;
+        render();
     }
-    render();
 });
 
-function sync() { db.ref('bonbi_v6').set({ taskData, logs, rewards }); }
+function sync() { db.ref('bonbi_data').set({ taskData, logs, rewards }); }
 function today() { return new Date().toISOString().split('T')[0]; }
-function getDayType() { const d = new Date().getDay(); return (d===0 || d===6) ? 'weekend' : 'weekday'; }
+function isWeekend() { const d = new Date().getDay(); return (d===0 || d===6); }
 
 function render() {
     const c = document.getElementById('childSelect').value;
     const d = today();
-    document.getElementById('childAvatar').src = avatars[c];
-    document.getElementById('displayDate').innerText = d;
+    const type = isWeekend() ? 'weekend' : 'weekday';
     
+    document.getElementById('childAvatar').src = avatars[c];
+    document.getElementById('displayDate').innerText = (isWeekend() ? "🎉 Cuối tuần" : "📅 Ngày thường") + " - " + d;
+    document.getElementById('greeting').innerText = "Chào " + c + "!";
+
     if(!logs[c]) logs[c] = {};
-    if(!logs[c][d]) logs[c][d] = (taskData[c][getDayType()] || []).map(t => ({text: t, status: 'not'}));
+    if(!logs[c][d]) {
+        logs[c][d] = (taskData[c][type] || []).map(t => ({text: t, status: 'not'}));
+    }
 
     let h = "";
     logs[c][d].forEach((t, i) => {
         h += `<div class="task ${t.status}">
             <div class="task-info">
                 <b>${t.text}</b>
-                <span class="task-status">${t.status==='pending'?'Đang chờ duyệt...':t.status==='done'?'Hoàn thành':'Chưa làm'}</span>
-                ${t.status==='pending' ? `<br><button class="btn-redo" onclick="action('${c}',${i},'not')">Sửa lại</button>` : ''}
+                <span class="task-status" style="color:${t.status==='done'?'#2ecc71':t.status==='pending'?'#f1c40f':'#999'}">
+                    ${t.status==='done'?'✅ HOÀN THÀNH':t.status==='pending'?'⏳ ĐANG CHỜ DUYỆT':'⭕ CHƯA XONG'}
+                </span>
+                ${t.status==='pending' ? `<button class="btn-redo" onclick="setStatus('${c}','${d}',${i},'not')">Sửa lại</button>` : ''}
             </div>
-            ${t.status==='not' ? `<button class="btn-done" onclick="action('${c}',${i},'pending')">Xong</button>` : ''}
+            ${t.status==='not' ? `<button class="btn-xong" onclick="setStatus('${c}','${d}',${i},'pending')">Xong!</button>` : ''}
         </div>`;
     });
-    document.getElementById('taskList').innerHTML = h || "<p style='text-align:center; color:#999'>Chưa có việc hôm nay</p>";
+    document.getElementById('taskList').innerHTML = h || "<p style='text-align:center;color:#999'>Chưa có việc được giao</p>";
 
-    document.getElementById('score').innerText = calcScore(c) + " ⭐";
-    
+    let score = 0;
+    for(let date in logs[c]) {
+        logs[c][date].forEach(t => { if(t.status==='done') score++; if(t.status==='missed') score--; });
+    }
+    document.getElementById('score').innerText = score + " ⭐";
+
     let rh = "";
-    rewards.forEach(r => { rh += `<div class="reward-item"><span>${r.text}</span><b>${r.point} ⭐</b></div>`; });
+    rewards.forEach(r => {
+        rh += `<div class="reward-item"><span>${score >= r.p ? '🎁':'🔒'} ${r.t}</span><b>${r.p}đ</b></div>`;
+    });
     document.getElementById('rewardList').innerHTML = rh;
 
     if(isAdmin) renderAdmin();
-    updateChart();
+    drawChart();
 }
 
-function action(c, i, s) { logs[c][today()][i].status = s; sync(); }
+function setStatus(c, d, i, s) { logs[c][d][i].status = s; sync(); }
 
-function calcScore(c) {
-    let s = 0;
-    if(!logs[c]) return 0;
-    for(let d in logs[c]) logs[c][d].forEach(t => { if(t.status==='done') s++; if(t.status==='missed') s--; });
-    return s;
-}
-
-function updateChart() {
-    const ctx = document.getElementById('scoreChart').getContext('2d');
+function drawChart() {
+    const ctx = document.getElementById('myChart').getContext('2d');
+    const labels = [], dataBon = [], dataBi = [];
     const now = new Date();
-    const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    const labels = Array.from({length: days}, (_, i) => i + 1);
-    
-    document.getElementById('monthLabel').innerText = "Tháng " + (now.getMonth()+1);
-
-    const getPoints = (name) => {
-        let current = 0;
-        return labels.map(day => {
-            const ds = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-            if(logs[name] && logs[name][ds]) logs[name][ds].forEach(t => { if(t.status==='done') current++; if(t.status==='missed') current--; });
-            return current;
-        });
-    };
+    for(let i=1; i<=new Date(now.getFullYear(), now.getMonth()+1, 0).getDate(); i++) {
+        labels.push(i);
+        const ds = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+        const getDayScore = (name) => {
+            let s = 0;
+            if(logs[name] && logs[name][ds]) logs[name][ds].forEach(t => { if(t.status==='done') s++; });
+            return s;
+        };
+        dataBon.push(getDayScore('BON'));
+        dataBi.push(getDayScore('BI'));
+    }
 
     if(myChart) myChart.destroy();
     myChart = new Chart(ctx, {
@@ -205,20 +200,19 @@ function updateChart() {
         data: {
             labels: labels,
             datasets: [
-                { label: 'BON', data: getPoints('BON'), borderColor: '#4a90e2', borderWidth: 2, pointRadius: 0, fill: true, backgroundColor: 'rgba(74,144,226,0.1)', tension: 0.4 },
-                { label: 'BI', data: getPoints('BI'), borderColor: '#e74c3c', borderWidth: 2, pointRadius: 0, fill: true, backgroundColor: 'rgba(231,76,60,0.1)', tension: 0.4 }
+                { label: 'BON', data: dataBon, borderColor: '#4a90e2', tension: 0.4, pointRadius: 0 },
+                { label: 'BI', data: dataBi, borderColor: '#e74c3c', tension: 0.4, pointRadius: 0 }
             ]
         },
         options: { 
-            responsive: true, maintainAspectRatio: false, 
+            responsive: true, maintainAspectRatio: false,
             plugins: { legend: { display: false } },
-            scales: { y: { display: false }, x: { grid: { display: false }, ticks: { font: { size: 8 } } } } 
+            scales: { y: { display: false }, x: { grid: { display: false }, ticks: { font: { size: 8 } } } }
         }
     });
 }
 
-function login() { if(prompt("Pass:")==="1") { isAdmin=true; document.getElementById('adminPanel').style.display='block'; render(); } }
-function logout() { isAdmin=false; document.getElementById('adminPanel').style.display='none'; }
+function login() { if(prompt("Mật khẩu:")==="1") { isAdmin=true; document.getElementById('adminPanel').style.display='block'; render(); } }
 function showTab(t) {
     document.getElementById('configTab').style.display = t==='config'?'block':'none';
     document.getElementById('approveTab').style.display = t==='approve'?'block':'none';
@@ -230,15 +224,15 @@ function renderAdmin() {
     if(logs[ac] && logs[ac][today()]) {
         logs[ac][today()].forEach((t, i) => {
             if(t.status==='pending') {
-                ah += `<div class="task"><span>${t.text}</span>
+                ah += `<div class="task"><b>${t.text}</b>
                     <div style="display:flex;gap:5px">
-                        <button onclick="action('${ac}',${i},'done')" style="background:var(--success);color:#fff;padding:5px">Duyệt</button>
-                        <button onclick="action('${ac}',${i},'missed')" style="background:var(--danger);color:#fff;padding:5px">Phạt</button>
+                        <button onclick="setStatus('${ac}','${today()}',${i},'done')" style="background:var(--success);color:white;padding:5px 10px">Duyệt</button>
+                        <button onclick="setStatus('${ac}','${today()}',${i},'missed')" style="background:var(--danger);color:white;padding:5px 10px">Phạt</button>
                     </div></div>`;
             }
         });
     }
-    document.getElementById('approveList').innerHTML = ah || "Hết việc chờ duyệt";
+    document.getElementById('approveList').innerHTML = ah || "Không có việc chờ duyệt";
     document.getElementById('tasksWeekday').value = (taskData[ac].weekday || []).join('\n');
     document.getElementById('tasksWeekend').value = (taskData[ac].weekend || []).join('\n');
 }
@@ -247,7 +241,7 @@ function saveTasks() {
     const ac = document.getElementById('adminChild').value;
     taskData[ac].weekday = document.getElementById('tasksWeekday').value.split('\n').filter(x=>x.trim());
     taskData[ac].weekend = document.getElementById('tasksWeekend').value.split('\n').filter(x=>x.trim());
-    sync(); alert("Xong!");
+    sync(); alert("Đã lưu!");
 }
 </script>
 </body>
