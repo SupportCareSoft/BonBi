@@ -92,4 +92,163 @@
     <div id="adminPanel" style="display:none" class="admin-box">
         <h4 style="text-align:center; margin-top:0">🛠 ADMIN PANEL</h4>
         <select id="adminChild" onchange="render()">
-            <option value="BON">Cài cho BON</option
+            <option value="BON">Cài cho BON</option>
+            <option value="BI">Cài cho BI</option>
+        </select>
+        <div style="display:flex; gap:5px; margin-bottom:10px">
+            <button onclick="showTab('config')" class="tab-btn">Cài việc</button>
+            <button onclick="showTab('approve')" class="tab-btn">Duyệt việc</button>
+        </div>
+        <div id="configTab">
+            <textarea id="tasksWeekday" rows="3" placeholder="Việc ngày thường..."></textarea>
+            <textarea id="tasksWeekend" rows="3" placeholder="Việc cuối tuần..."></textarea>
+            <button onclick="saveTasks()" style="background:var(--primary); color:white; width:100%; padding:10px">Lưu Cloud</button>
+        </div>
+        <div id="approveTab" style="display:none"><div id="approveList"></div></div>
+        <button onclick="logout()" style="width:100%; margin-top:10px; background:#333; color:#fff">Đóng</button>
+    </div>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCuQCluWc07QOWpAC5lGCxMeOGoujq4k8w",
+  authDomain: "bon-bi.firebaseapp.com",
+  projectId: "bon-bi",
+  storageBucket: "bon-bi.firebasestorage.app",
+  messagingSenderId: "988400970351",
+  appId: "1:988400970351:web:21e9181950114225417b9a",
+  databaseURL: "https://bon-bi-default-rtdb.firebaseio.com/"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+let isAdmin = false, myChart = null;
+
+const avatars = { BON: "https://i.postimg.cc/G9vhLbhg/Bon.jpg", BI: "https://i.postimg.cc/hhVPDKP0/Bi.jpg" };
+let taskData = { BON: { weekday: [], weekend: [] }, BI: { weekday: [], weekend: [] } };
+let logs = {}, rewards = [{text: "Kem", point: 5}, {text: "Công viên", point: 20}];
+
+db.ref('bonbi_v6').on('value', (snap) => {
+    const data = snap.val();
+    if (data) { 
+        if(data.taskData) taskData = data.taskData;
+        if(data.logs) logs = data.logs;
+    }
+    render();
+});
+
+function sync() { db.ref('bonbi_v6').set({ taskData, logs, rewards }); }
+function today() { return new Date().toISOString().split('T')[0]; }
+function getDayType() { const d = new Date().getDay(); return (d===0 || d===6) ? 'weekend' : 'weekday'; }
+
+function render() {
+    const c = document.getElementById('childSelect').value;
+    const d = today();
+    document.getElementById('childAvatar').src = avatars[c];
+    document.getElementById('displayDate').innerText = d;
+    
+    if(!logs[c]) logs[c] = {};
+    if(!logs[c][d]) logs[c][d] = (taskData[c][getDayType()] || []).map(t => ({text: t, status: 'not'}));
+
+    let h = "";
+    logs[c][d].forEach((t, i) => {
+        h += `<div class="task ${t.status}">
+            <div class="task-info">
+                <b>${t.text}</b>
+                <span class="task-status">${t.status==='pending'?'Đang chờ duyệt...':t.status==='done'?'Hoàn thành':'Chưa làm'}</span>
+                ${t.status==='pending' ? `<br><button class="btn-redo" onclick="action('${c}',${i},'not')">Sửa lại</button>` : ''}
+            </div>
+            ${t.status==='not' ? `<button class="btn-done" onclick="action('${c}',${i},'pending')">Xong</button>` : ''}
+        </div>`;
+    });
+    document.getElementById('taskList').innerHTML = h || "<p style='text-align:center; color:#999'>Chưa có việc hôm nay</p>";
+
+    document.getElementById('score').innerText = calcScore(c) + " ⭐";
+    
+    let rh = "";
+    rewards.forEach(r => { rh += `<div class="reward-item"><span>${r.text}</span><b>${r.point} ⭐</b></div>`; });
+    document.getElementById('rewardList').innerHTML = rh;
+
+    if(isAdmin) renderAdmin();
+    updateChart();
+}
+
+function action(c, i, s) { logs[c][today()][i].status = s; sync(); }
+
+function calcScore(c) {
+    let s = 0;
+    if(!logs[c]) return 0;
+    for(let d in logs[c]) logs[c][d].forEach(t => { if(t.status==='done') s++; if(t.status==='missed') s--; });
+    return s;
+}
+
+function updateChart() {
+    const ctx = document.getElementById('scoreChart').getContext('2d');
+    const now = new Date();
+    const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const labels = Array.from({length: days}, (_, i) => i + 1);
+    
+    document.getElementById('monthLabel').innerText = "Tháng " + (now.getMonth()+1);
+
+    const getPoints = (name) => {
+        let current = 0;
+        return labels.map(day => {
+            const ds = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+            if(logs[name] && logs[name][ds]) logs[name][ds].forEach(t => { if(t.status==='done') current++; if(t.status==='missed') current--; });
+            return current;
+        });
+    };
+
+    if(myChart) myChart.destroy();
+    myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                { label: 'BON', data: getPoints('BON'), borderColor: '#4a90e2', borderWidth: 2, pointRadius: 0, fill: true, backgroundColor: 'rgba(74,144,226,0.1)', tension: 0.4 },
+                { label: 'BI', data: getPoints('BI'), borderColor: '#e74c3c', borderWidth: 2, pointRadius: 0, fill: true, backgroundColor: 'rgba(231,76,60,0.1)', tension: 0.4 }
+            ]
+        },
+        options: { 
+            responsive: true, maintainAspectRatio: false, 
+            plugins: { legend: { display: false } },
+            scales: { y: { display: false }, x: { grid: { display: false }, ticks: { font: { size: 8 } } } } 
+        }
+    });
+}
+
+function login() { if(prompt("Pass:")==="1") { isAdmin=true; document.getElementById('adminPanel').style.display='block'; render(); } }
+function logout() { isAdmin=false; document.getElementById('adminPanel').style.display='none'; }
+function showTab(t) {
+    document.getElementById('configTab').style.display = t==='config'?'block':'none';
+    document.getElementById('approveTab').style.display = t==='approve'?'block':'none';
+}
+
+function renderAdmin() {
+    const ac = document.getElementById('adminChild').value;
+    let ah = "";
+    if(logs[ac] && logs[ac][today()]) {
+        logs[ac][today()].forEach((t, i) => {
+            if(t.status==='pending') {
+                ah += `<div class="task"><span>${t.text}</span>
+                    <div style="display:flex;gap:5px">
+                        <button onclick="action('${ac}',${i},'done')" style="background:var(--success);color:#fff;padding:5px">Duyệt</button>
+                        <button onclick="action('${ac}',${i},'missed')" style="background:var(--danger);color:#fff;padding:5px">Phạt</button>
+                    </div></div>`;
+            }
+        });
+    }
+    document.getElementById('approveList').innerHTML = ah || "Hết việc chờ duyệt";
+    document.getElementById('tasksWeekday').value = (taskData[ac].weekday || []).join('\n');
+    document.getElementById('tasksWeekend').value = (taskData[ac].weekend || []).join('\n');
+}
+
+function saveTasks() {
+    const ac = document.getElementById('adminChild').value;
+    taskData[ac].weekday = document.getElementById('tasksWeekday').value.split('\n').filter(x=>x.trim());
+    taskData[ac].weekend = document.getElementById('tasksWeekend').value.split('\n').filter(x=>x.trim());
+    sync(); alert("Xong!");
+}
+</script>
+</body>
+</html>
