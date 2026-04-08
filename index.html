@@ -29,14 +29,16 @@
         
         .reward-box { background: #fff9e6; border: 1px dashed #f1c40f; padding: 15px; border-radius: 15px; margin-top: 15px; }
         .admin-panel { background: #fafafa; border: 2px solid var(--dark); padding: 20px; border-radius: 20px; margin-top: 20px; }
-        textarea, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; }
+        textarea, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-size: 14px; }
         .hidden { display: none; }
+        .config-group { background: #fff; padding: 15px; border-radius: 15px; border: 1px solid #eee; margin-bottom: 15px; }
+        h4 { margin: 5px 0; color: var(--dark); }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="loading" style="text-align:center; padding: 50px;">🚀 Đang tải dữ liệu...</div>
+    <div id="loading" style="text-align:center; padding: 50px;">🚀 Đang kết nối Firebase...</div>
     
     <div id="app" class="hidden">
         <div class="header">
@@ -53,7 +55,7 @@
         </select>
 
         <div class="score-box">
-            <div style="font-size:0.9em; opacity:0.8">TỔNG ĐIỂM TÍCH LŨY</div>
+            <div style="font-size:0.9em; opacity:0.8">ĐIỂM TÍCH LŨY</div>
             <div style="font-size:3em; font-weight:bold" id="totalScore">0</div>
         </div>
 
@@ -61,12 +63,12 @@
 
         <div class="reward-box">
             <h4 style="margin:0 0 10px 0">🎁 BẢNG THƯỞNG CHUNG:</h4>
-            <div id="rewardContent" style="white-space: pre-wrap; font-size: 0.95em; color: #856404; line-height: 1.5;"></div>
+            <div id="rewardContent" style="white-space: pre-wrap; font-size: 0.95em; color: #856404;"></div>
         </div>
 
         <div class="report-section" style="margin-top:30px">
             <h3 style="margin:0">📊 Thống kê tháng <span id="monthTitle"></span></h3>
-            <div id="statArea" style="display:flex; justify-content: space-around; margin: 15px 0;">
+            <div style="display:flex; justify-content: space-around; margin: 15px 0;">
                 <div>BON: <b id="statBon" style="color:var(--primary)">0</b></div>
                 <div>BI: <b id="statBi" style="color:var(--danger)">0</b></div>
             </div>
@@ -76,29 +78,40 @@
         <button style="background:none; border:1px dashed #ccc; color:#888; width:100%; margin-top:30px; padding:15px; border-radius:15px" onclick="login()">🔐 QUẢN LÝ CHO BỐ MẸ</button>
 
         <div id="adminArea" class="admin-panel hidden">
-            <h3 style="text-align:center; margin-top:0">🛠 QUẢN LÝ</h3>
-            <div style="display:flex; gap:10px">
-                <button onclick="showTab('approve')" style="flex:1; background:var(--success); color:white">Duyệt việc</button>
-                <button onclick="showTab('config')" style="flex:1; background:var(--primary); color:white">Cấu hình việc</button>
+            <h3 style="text-align:center; margin-top:0">🛠 HỆ THỐNG QUẢN TRỊ</h3>
+            <div style="display:flex; gap:10px; margin-bottom:20px">
+                <button onclick="showTab('approve')" id="btnTabApprove" style="flex:1; background:var(--success); color:white">Duyệt việc</button>
+                <button onclick="showTab('config')" id="btnTabConfig" style="flex:1; background:#eee">Cấu hình</button>
             </div>
             
             <div id="tabApprove" class="hidden">
-                <h4 id="adminTargetName" style="margin-bottom:10px">Việc chờ duyệt:</h4>
+                <h4 id="adminTargetName">Đang duyệt cho bé...</h4>
                 <div id="approveList"></div>
             </div>
 
             <div id="tabConfig" class="hidden">
-                <p style="background:#eef; padding:10px; border-radius:8px; font-size:0.85em">Đang sửa việc cho: <b id="configTarget"></b></p>
-                <label>📋 Việc ngày thường:</label>
-                <textarea id="editWeekday" rows="4"></textarea>
-                <label>🎡 Việc cuối tuần:</label>
-                <textarea id="editWeekend" rows="4"></textarea>
+                <div class="config-group" style="border-top: 4px solid var(--primary)">
+                    <h4>👤 Việc cho BON</h4>
+                    <label style="font-size:0.8em">Ngày thường:</label>
+                    <textarea id="editWeekdayBon" rows="3"></textarea>
+                    <label style="font-size:0.8em">Cuối tuần:</label>
+                    <textarea id="editWeekendBon" rows="3"></textarea>
+                </div>
+
+                <div class="config-group" style="border-top: 4px solid var(--danger)">
+                    <h4>👤 Việc cho BI</h4>
+                    <label style="font-size:0.8em">Ngày thường:</label>
+                    <textarea id="editWeekdayBi" rows="3"></textarea>
+                    <label style="font-size:0.8em">Cuối tuần:</label>
+                    <textarea id="editWeekendBi" rows="3"></textarea>
+                </div>
+
+                <div class="config-group">
+                    <h4>🎁 Thưởng chung</h4>
+                    <textarea id="editRewards" rows="3"></textarea>
+                </div>
                 
-                <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ddd;">
-                <label>🎁 Nội dung bảng thưởng (Dùng chung 2 bé):</label>
-                <textarea id="editRewards" rows="4" placeholder="Ví dụ: 50đ = Đi siêu thị..."></textarea>
-                
-                <button style="background:var(--dark); color:white; width:100%; padding:15px; font-size:1.1em; margin-top:10px" onclick="saveConfig()">LƯU TẤT CẢ</button>
+                <button style="background:var(--dark); color:white; width:100%; padding:15px; font-size:1.1em" onclick="saveConfig()">LƯU TẤT CẢ THAY ĐỔI</button>
             </div>
             <button onclick="location.reload()" style="background:#666; color:white; width:100%; margin-top:15px">THOÁT ADMIN</button>
         </div>
@@ -106,7 +119,6 @@
 </div>
 
 <script>
-// --- CẤU HÌNH FIREBASE ---
 const firebaseConfig = {
   apiKey: "AIzaSyCuQCluWc07QOWpAC5lGCxMeOGoujq4k8w",
   authDomain: "bon-bi.firebaseapp.com",
@@ -120,22 +132,21 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-const avatars = {
-    BON: "https://i.postimg.cc/G9vhLbhg/Bon.jpg",
-    BI: "https://i.postimg.cc/hhVPDKP0/Bi.jpg"
-};
+const avatars = { BON: "https://i.postimg.cc/G9vhLbhg/Bon.jpg", BI: "https://i.postimg.cc/hhVPDKP0/Bi.jpg" };
 
 let dataMaster = {
-    taskData: { BON: { weekday: [], weekend: [] }, BI: { weekday: [], weekend: [] } },
+    taskData: { 
+        BON: { weekday: [], weekend: [] }, 
+        BI: { weekday: [], weekend: [] } 
+    },
     logs: {},
-    rewards: "Chưa có danh sách thưởng."
+    rewards: ""
 };
 
 let myChart = null;
 let isAdmin = false;
 
-// --- ĐỒNG BỘ ---
-db.ref('bonbi_pro_v2').on('value', (snap) => {
+db.ref('bonbi_final_v3').on('value', (snap) => {
     const data = snap.val();
     if(data) dataMaster = data;
     document.getElementById('loading').classList.add('hidden');
@@ -144,11 +155,10 @@ db.ref('bonbi_pro_v2').on('value', (snap) => {
     updateChart();
 });
 
-function sync() { db.ref('bonbi_pro_v2').set(dataMaster); }
+function sync() { db.ref('bonbi_final_v3').set(dataMaster); }
 function today() { return new Date().toISOString().split('T')[0]; }
 function getDayType() { const d = new Date().getDay(); return (d===0 || d===6) ? 'weekend' : 'weekday'; }
 
-// --- RENDER ---
 function render() {
     const c = document.getElementById('childSelect').value;
     const d = today();
@@ -156,85 +166,71 @@ function render() {
     
     document.getElementById('avatar').src = avatars[c];
     document.getElementById('hello').innerText = "Chào " + c + "!";
-    document.getElementById('dateText').innerText = d + (type==='weekend' ? " (Cuối tuần 🍕)" : " (Ngày thường ✏️)");
+    document.getElementById('dateText').innerText = d + (type==='weekend' ? " (Cuối tuần)" : " (Ngày thường)");
     document.getElementById('rewardContent').innerText = dataMaster.rewards || "Chưa có danh sách thưởng.";
 
     if(!dataMaster.logs[c]) dataMaster.logs[c] = {};
     if(!dataMaster.logs[c][d]) {
-        const tasks = dataMaster.taskData[c][type] || [];
-        dataMaster.logs[c][d] = tasks.map(t => ({text: t, status: 'not'}));
+        dataMaster.logs[c][d] = (dataMaster.taskData[c][type] || []).map(t => ({text: t, status: 'not'}));
     }
 
-    // Hiển thị việc cho Bé
     let h = "";
     dataMaster.logs[c][d].forEach((t, i) => {
         h += `<div class="task ${t.status}">
-            <div style="flex:1"><b>${t.text}</b><br><small style="color:#888; font-size:0.7em">${t.status.toUpperCase()}</small></div>
+            <div style="flex:1"><b>${t.text}</b><br><small style="color:#888">${t.status.toUpperCase()}</small></div>
             <div>
-                ${t.status === 'not' ? `<button class="btn-action" onclick="changeStatus('${c}', ${i}, 'pending')">Xong</button>` : ''}
-                ${t.status === 'pending' ? `<button class="btn-redo" onclick="changeStatus('${c}', ${i}, 'not')">Làm lại</button>` : ''}
-                ${t.status === 'done' ? '<span>✅</span>' : ''}
-                ${t.status === 'missed' ? '<span>❌</span>' : ''}
+                ${t.status === 'not' ? `<button class="btn-action" onclick="changeSt('${c}', ${i}, 'pending')">Xong</button>` : ''}
+                ${t.status === 'pending' ? `<button class="btn-redo" onclick="changeSt('${c}', ${i}, 'not')">Làm lại</button>` : ''}
+                ${t.status === 'done' ? '✅' : ''} ${t.status === 'missed' ? '❌' : ''}
             </div>
         </div>`;
     });
     document.getElementById('taskList').innerHTML = h;
 
-    // Tính điểm
     let total = 0;
     for(let k in dataMaster.logs[c]) {
-        dataMaster.logs[c][k].forEach(t => {
-            if(t.status==='done') total++;
-            if(t.status==='missed') total--;
-        });
+        dataMaster.logs[c][k].forEach(t => { if(t.status==='done') total++; if(t.status==='missed') total--; });
     }
     document.getElementById('totalScore').innerText = total;
 
-    // Giao diện Admin
     if(isAdmin) {
-        document.getElementById('configTarget').innerText = c;
         document.getElementById('adminTargetName').innerText = "Duyệt việc cho: " + c;
-        
         let ah = "";
         dataMaster.logs[c][d].forEach((t, i) => {
             if(t.status === 'pending') {
                 ah += `<div class="task">
                     <span style="flex:1">${t.text}</span>
-                    <button onclick="adminJudge('${c}', ${i}, 'done')" style="background:var(--success); color:white; margin-right:5px">Duyệt</button>
-                    <button onclick="adminJudge('${c}', ${i}, 'missed')" style="background:var(--danger); color:white">Phạt</button>
+                    <button onclick="judge('${c}', ${i}, 'done')" style="background:var(--success); color:white; margin-right:5px">Duyệt</button>
+                    <button onclick="judge('${c}', ${i}, 'missed')" style="background:var(--danger); color:white">Phạt</button>
                 </div>`;
             }
         });
         document.getElementById('approveList').innerHTML = ah || "Hết việc chờ duyệt.";
         
-        // Cập nhật giá trị vào ô nhập
-        document.getElementById('editWeekday').value = (dataMaster.taskData[c].weekday || []).join('\n');
-        document.getElementById('editWeekend').value = (dataMaster.taskData[c].weekend || []).join('\n');
+        // Load data to inputs
+        document.getElementById('editWeekdayBon').value = (dataMaster.taskData.BON.weekday || []).join('\n');
+        document.getElementById('editWeekendBon').value = (dataMaster.taskData.BON.weekend || []).join('\n');
+        document.getElementById('editWeekdayBi').value = (dataMaster.taskData.BI.weekday || []).join('\n');
+        document.getElementById('editWeekendBi').value = (dataMaster.taskData.BI.weekend || []).join('\n');
         document.getElementById('editRewards').value = dataMaster.rewards || "";
     }
 }
 
-function changeStatus(child, idx, status) {
-    dataMaster.logs[child][today()][idx].status = status;
-    sync();
-}
-
-function adminJudge(child, idx, status) {
-    dataMaster.logs[child][today()][idx].status = status;
-    sync();
-}
+function changeSt(child, idx, status) { dataMaster.logs[child][today()][idx].status = status; sync(); }
+function judge(child, idx, status) { dataMaster.logs[child][today()][idx].status = status; sync(); }
 
 function saveConfig() {
-    const c = document.getElementById('childSelect').value;
-    dataMaster.taskData[c].weekday = document.getElementById('editWeekday').value.split('\n').filter(x=>x.trim());
-    dataMaster.taskData[c].weekend = document.getElementById('editWeekend').value.split('\n').filter(x=>x.trim());
-    dataMaster.rewards = document.getElementById('editRewards').value; // Lưu thưởng chung
+    dataMaster.taskData.BON.weekday = document.getElementById('editWeekdayBon').value.split('\n').filter(x=>x.trim());
+    dataMaster.taskData.BON.weekend = document.getElementById('editWeekendBon').value.split('\n').filter(x=>x.trim());
+    dataMaster.taskData.BI.weekday = document.getElementById('editWeekdayBi').value.split('\n').filter(x=>x.trim());
+    dataMaster.taskData.BI.weekend = document.getElementById('editWeekendBi').value.split('\n').filter(x=>x.trim());
+    dataMaster.rewards = document.getElementById('editRewards').value;
     sync();
-    alert("Đã lưu!");
+    alert("Đã lưu cấu hình cho cả hai bé!");
 }
 
 function login() {
-    if(prompt("Mật khẩu bố mẹ:") === "1") {
+    if(prompt("Mật khẩu:") === "1") {
         isAdmin = true;
         document.getElementById('adminArea').classList.remove('hidden');
         showTab('approve');
@@ -245,44 +241,37 @@ function login() {
 function showTab(t) {
     document.getElementById('tabApprove').className = t==='approve' ? '' : 'hidden';
     document.getElementById('tabConfig').className = t==='config' ? '' : 'hidden';
+    document.getElementById('btnTabApprove').style.background = t==='approve' ? 'var(--success)' : '#eee';
+    document.getElementById('btnTabConfig').style.background = t==='config' ? 'var(--primary)' : '#eee';
 }
 
 function updateChart() {
     const ctx = document.getElementById('myChart').getContext('2d');
     const now = new Date();
     const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    let labels = [];
-    let dBon = [], dBi = [], tBon = 0, tBi = 0;
-
+    let labels = [], dBon = [], dBi = [], tBon = 0, tBi = 0;
     for (let i = 1; i <= days; i++) {
         labels.push(i);
         let ds = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
         const calc = (name) => {
-            let s = 0;
-            if(dataMaster.logs[name] && dataMaster.logs[name][ds]) {
-                dataMaster.logs[name][ds].forEach(t => { 
-                    if(t.status==='done') s++; 
-                    if(t.status==='missed') s--; 
-                });
-            }
-            return s;
+            let s = 0; if(dataMaster.logs[name] && dataMaster.logs[name][ds]) {
+                dataMaster.logs[name][ds].forEach(t => { if(t.status==='done') s++; if(t.status==='missed') s--; });
+            } return s;
         }
         let sb = calc('BON'), si = calc('BI');
-        dBon.push(sb); dBi.push(si);
-        tBon += sb; tBi += si;
+        dBon.push(sb); dBi.push(si); tBon += sb; tBi += si;
     }
     document.getElementById('monthTitle').innerText = (now.getMonth() + 1);
     document.getElementById('statBon').innerText = tBon + " đ";
     document.getElementById('statBi').innerText = tBi + " đ";
-
     if (myChart) myChart.destroy();
     myChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
             datasets: [
-                { label: 'BON', data: dBon, borderColor: '#4a90e2', fill: false },
-                { label: 'BI', data: dBi, borderColor: '#e74c3c', fill: false }
+                { label: 'BON', data: dBon, borderColor: '#4a90e2', tension: 0.1 },
+                { label: 'BI', data: dBi, borderColor: '#e74c3c', tension: 0.1 }
             ]
         },
         options: { responsive: true, maintainAspectRatio: false }
