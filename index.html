@@ -2,48 +2,53 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BON & BI PRO MAX CLOUD</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/5406/5406822.png">
+
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
     
     <style>
         :root { --primary: #4a90e2; --success: #2ecc71; --warning: #f1c40f; --danger: #e74c3c; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 10px; color: #333; }
-        .container { max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 10px; color: #333; margin: 0; }
+        .container { max-width: 500px; margin: auto; background: #fff; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         
         .avatar-container { text-align: center; margin-bottom: 10px; }
-        .avatar { width: 100px; height: 100px; border-radius: 50%; border: 4px solid var(--primary); object-fit: cover; background: #eee; transition: 0.3s; }
+        .avatar { width: 90px; height: 90px; border-radius: 50%; border: 4px solid var(--primary); object-fit: cover; background: #eee; }
         
-        h1 { text-align: center; color: var(--primary); margin-top: 0; }
-        .day-info { text-align: center; font-weight: bold; color: #666; margin-bottom: 15px; font-size: 0.9em; }
+        h1 { text-align: center; color: var(--primary); margin: 10px 0 5px 0; font-size: 1.5em; }
+        .day-info { text-align: center; font-weight: bold; color: #666; margin-bottom: 15px; font-size: 0.85em; }
         
-        select, input, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 12px; margin: 5px 0; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 16px; }
+        select, input, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 12px; margin: 5px 0; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 16px; }
+        button:active { transform: scale(0.96); }
         
         .btn-main { background: var(--primary); color: white; }
-        .btn-admin { background: #6c757d; color: white; margin-top: 20px; }
+        .btn-admin { background: none; color: #bbb; border: 1px dashed #ddd; margin-top: 30px; font-size: 0.8em; }
         
-        .task { display: flex; align-items: center; justify-content: space-between; padding: 15px; margin-top: 10px; border-radius: 10px; border-left: 5px solid #ddd; background: #f9f9f9; }
-        .task.done { border-left-color: var(--success); background: #e8f5e9; }
-        .task.pending { border-left-color: var(--warning); background: #fffde7; }
-        .task.missed { border-left-color: var(--danger); background: #ffebee; opacity: 0.8; }
+        .task { display: flex; align-items: center; justify-content: space-between; padding: 15px; margin-top: 10px; border-radius: 12px; border-left: 6px solid #ddd; background: #f9f9f9; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+        .task.done { border-left-color: var(--success); background: #f0fff4; }
+        .task.pending { border-left-color: var(--warning); background: #fffdf0; }
+        .task.missed { border-left-color: var(--danger); background: #fff5f5; opacity: 0.9; }
         
         .task-info { flex-grow: 1; margin-right: 10px; }
-        .task-status { font-size: 0.75em; font-weight: bold; text-transform: uppercase; margin-top: 4px; }
-        .btn-action { width: auto; padding: 8px 15px; margin: 0; font-size: 0.9em; }
+        .task-status { font-size: 0.7em; font-weight: bold; text-transform: uppercase; margin-top: 4px; color: #888; }
+        .btn-action { width: auto; padding: 8px 18px; margin: 0; font-size: 0.9em; }
 
-        .admin-box { background: #f8f9fa; padding: 15px; border-radius: 10px; border: 2px solid #ddd; margin-top: 20px; }
-        .score-board { background: var(--primary); color: white; padding: 15px; border-radius: 10px; text-align: center; margin: 15px 0; }
-        .reward-item { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
-        .btn-danger { background: var(--danger); color: white; }
+        .admin-box { background: #f8f9fa; padding: 15px; border-radius: 15px; border: 2px solid #ddd; margin-top: 20px; }
+        .score-board { background: linear-gradient(135deg, var(--primary) 0%, #357abd 100%); color: white; padding: 20px; border-radius: 15px; text-align: center; margin: 15px 0; }
+        .reward-item { padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
         .tab-group { display: flex; gap: 5px; margin-bottom: 10px; }
-        .loading { text-align: center; color: var(--primary); font-weight: bold; padding: 20px; }
+        .loading { text-align: center; color: var(--primary); font-weight: bold; padding: 50px; }
     </style>
 </head>
 <body>
 
-<div id="loading" class="loading"> Đang kết nối dữ liệu đám mây...</div>
+<div id="loading" class="loading">🚀 Đang tải dữ liệu của Bon & Bi...</div>
 
 <div class="container" id="mainApp" style="display:none">
     <div class="avatar-container">
@@ -52,56 +57,56 @@
     <h1 id="greeting">BÉ BON & BI</h1>
     <div id="displayDate" class="day-info"></div>
 
-    <label>👤 Chọn bé đang xem:</label>
+    <label style="font-size: 0.8em; color: #888; margin-left: 5px;">👤 ĐANG XEM:</label>
     <select id="childSelect" onchange="render()">
-        <option value="BON">BON</option>
-        <option value="BI">BI</option>
+        <option value="BON">Bé BON</option>
+        <option value="BI">Bé BI</option>
     </select>
 
     <div class="score-board">
-        <div style="font-size: 0.9em;">ĐIỂM TÍCH LŨY</div>
-        <div style="font-size: 2em; font-weight: bold;"><span id="score">0</span> ⭐</div>
+        <div style="font-size: 0.8em; opacity: 0.9; letter-spacing: 1px;">ĐIỂM TÍCH LŨY</div>
+        <div style="font-size: 3em; font-weight: bold;"><span id="score">0</span> ⭐</div>
     </div>
 
     <div id="taskList"></div>
 
-    <h3>🎁 Quà mục tiêu</h3>
+    <h3 style="margin-top: 25px; border-bottom: 2px solid #f0f2f5; padding-bottom: 10px;">🎁 Quà của bé</h3>
     <div id="rewardList"></div>
 
-    <button class="btn-admin" onclick="login()">🔐 Chế độ Bố Mẹ</button>
+    <button class="btn-admin" onclick="login()">🔐 CHẾ ĐỘ QUẢN LÝ</button>
 
     <div id="adminPanel" style="display:none" class="admin-box">
-        <h3>🛠 Quản lý: 
-            <select id="adminChild" onchange="render()" style="width:auto; display:inline">
+        <h3 style="text-align:center; margin-top:0">🛠 QUẢN LÝ: 
+            <select id="adminChild" onchange="render()" style="width:auto; display:inline; padding:5px">
                 <option value="BON">BON</option>
                 <option value="BI">BI</option>
             </select>
         </h3>
         
         <div class="tab-group">
-            <button onclick="showTab('config')" class="btn-main">Cài việc</button>
-            <button onclick="showTab('approve')" style="background:var(--success); color:white">Duyệt/Phạt</button>
+            <button onclick="showTab('config')" style="background:#eee; flex:1">Cài việc</button>
+            <button onclick="showTab('approve')" style="background:var(--success); color:white; flex:1">Duyệt việc</button>
         </div>
 
         <div id="configTab">
-            <p><b>📝 Việc Ngày Thường:</b></p>
-            <textarea id="tasksWeekday" rows="3"></textarea>
-            <p><b>🎉 Việc Cuối Tuần:</b></p>
-            <textarea id="tasksWeekend" rows="3"></textarea>
-            <button class="btn-main" onclick="saveTasks()">Lưu vào Cloud</button>
-            <hr>
-            <p><b>🎁 Thêm quà mới:</b></p>
-            <input id="rewardText" placeholder="Tên quà">
-            <input id="rewardPoint" type="number" placeholder="Điểm">
-            <button class="btn-main" style="background:#e67e22" onclick="addReward()">Thêm quà</button>
+            <p style="margin-bottom:5px"><b>📝 Việc Ngày Thường:</b></p>
+            <textarea id="tasksWeekday" rows="4" placeholder="Ví dụ:&#10;Đánh răng&#10;Học bài"></textarea>
+            <p style="margin-bottom:5px"><b>🎉 Việc Cuối Tuần:</b></p>
+            <textarea id="tasksWeekend" rows="4" placeholder="Ví dụ:&#10;Quét nhà&#10;Tưới cây"></textarea>
+            <button class="btn-main" onclick="saveTasks()">LƯU LÊN CLOUD</button>
+            <hr style="margin:20px 0; border:0; border-top:1px solid #ddd">
+            <p style="margin-bottom:5px"><b>🎁 Thêm phần thưởng:</b></p>
+            <input id="rewardText" placeholder="Tên món quà">
+            <input id="rewardPoint" type="number" placeholder="Số điểm cần">
+            <button class="btn-main" style="background:#e67e22" onclick="addReward()">THÊM QUÀ</button>
         </div>
 
         <div id="approveTab" style="display:none">
-            <h4>✅ Duyệt việc hôm nay:</h4>
+            <h4 style="margin-top:0">✅ Chờ duyệt hôm nay:</h4>
             <div id="approveList"></div>
         </div>
 
-        <button onclick="logout()" style="background:#333; color:white; margin-top:20px">🔓 Thoát quản lý</button>
+        <button onclick="logout()" style="background:#333; color:white; margin-top:20px">ĐÓNG QUẢN LÝ</button>
     </div>
 </div>
 
@@ -115,7 +120,7 @@ const firebaseConfig = {
   messagingSenderId: "988400970351",
   appId: "1:988400970351:web:21e9181950114225417b9a",
   measurementId: "G-TNPNS19WYL",
-  databaseURL: "https://bon-bi-default-rtdb.firebaseio.com/" // Tự động thêm dựa trên projectId
+  databaseURL: "https://bon-bi-default-rtdb.firebaseio.com/"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -124,7 +129,7 @@ const db = firebase.database();
 const PASSWORD = "1";
 let isAdmin = false;
 
-// Link ảnh (Thay link trực tiếp tại đây)
+// Link ảnh con
 const childAvatars = {
     BON: "https://i.postimg.cc/G9vhLbhg/Bon.jpg", 
     BI: "https://i.postimg.cc/hhVPDKP0/Bi.jpg"
@@ -135,9 +140,9 @@ let taskData = {
     BI: { weekday: ["Ăn sáng", "Học tiếng Anh"], weekend: ["Tưới cây"] }
 };
 let logs = {};
-let rewards = [{text: "Đi công viên", point: 10}];
+let rewards = [{text: "Kem ốc quế", point: 5}, {text: "Đi công viên", point: 10}];
 
-// --- KẾT NỐI CLOUD ---
+// --- KẾT NỐI VÀ ĐỒNG BỘ ---
 db.ref('bonbi_data').on('value', (snapshot) => {
     const data = snapshot.val();
     if (data) {
@@ -151,14 +156,9 @@ db.ref('bonbi_data').on('value', (snapshot) => {
 });
 
 function sync() {
-    db.ref('bonbi_data').set({
-        taskData: taskData,
-        logs: logs,
-        rewards: rewards
-    });
+    db.ref('bonbi_data').set({ taskData, logs, rewards });
 }
 
-// --- LOGIC NGÀY THÁNG ---
 function getDayType() {
     const day = new Date().getDay();
     return (day === 0 || day === 6) ? 'weekend' : 'weekday';
@@ -174,7 +174,7 @@ function ensureToday(c) {
     }
 }
 
-// --- ACTIONS ---
+// --- HÀNH ĐỘNG ---
 function clickTask(i) {
     let c = document.getElementById('childSelect').value;
     logs[c][today()][i].status = 'pending';
@@ -200,7 +200,7 @@ function saveTasks() {
     taskData[ac].weekday = document.getElementById('tasksWeekday').value.split('\n').filter(x => x.trim());
     taskData[ac].weekend = document.getElementById('tasksWeekend').value.split('\n').filter(x => x.trim());
     sync();
-    alert("Đã lưu việc cho " + ac);
+    alert("Đã cập nhật việc cho " + ac);
 }
 
 function addReward() {
@@ -209,6 +209,8 @@ function addReward() {
     if(t && p) {
         rewards.push({text: t, point: p});
         sync();
+        document.getElementById('rewardText').value = '';
+        document.getElementById('rewardPoint').value = '';
     }
 }
 
@@ -220,9 +222,7 @@ function login() {
         render();
     }
 }
-
 function logout() { isAdmin = false; document.getElementById('adminPanel').style.display = 'none'; render();}
-
 function showTab(tab) {
     document.getElementById('configTab').style.display = tab === 'config' ? 'block' : 'none';
     document.getElementById('approveTab').style.display = tab === 'approve' ? 'block' : 'none';
@@ -245,29 +245,31 @@ function render() {
     let d = today();
     let type = getDayType();
     
-    // Avatar
-    const avatarImg = document.getElementById('childAvatar');
-    avatarImg.src = childAvatars[c];
-    avatarImg.onerror = function() { this.src = "https://cdn-icons-png.flaticon.com/512/1177/1177568.png"; };
-    
+    document.getElementById('childAvatar').src = childAvatars[c];
     document.getElementById('greeting').innerText = "BÉ " + c;
     document.getElementById('displayDate').innerText = (type === 'weekend' ? "🎉 Cuối tuần" : "📅 Ngày thường") + " - " + d;
     
     ensureToday(c);
 
-    // List việc bé thấy
+    // Render danh sách việc cho bé
     let list = document.getElementById('taskList');
-    list.innerHTML = '<h3>📝 Việc hôm nay:</h3>';
+    list.innerHTML = '<h3 style="font-size: 1em">📝 Việc cần làm:</h3>';
     logs[c][d].forEach((t, i) => {
         let div = document.createElement('div');
         div.className = `task ${t.status}`;
-        let st = t.status === 'done' ? '✅ Giỏi lắm!' : (t.status === 'pending' ? '⏳ Đợi duyệt' : (t.status === 'missed' ? '❌ Quên làm (-1đ)' : '⭕ Chưa xong'));
+        let st = {
+            'done': '✅ Đã hoàn thành!',
+            'pending': '⏳ Đợi bố mẹ duyệt...',
+            'missed': '❌ Quên làm (Bị trừ điểm)',
+            'not': '⭕ Chưa xong'
+        }[t.status];
+        
         div.innerHTML = `<div class="task-info"><b>${t.text}</b><div class="task-status">${st}</div></div>
-            ${t.status === 'not' ? `<button class="btn-action btn-main" onclick="clickTask(${i})">Xong!</button>` : ''}`;
+            ${t.status === 'not' ? `<button class="btn-action btn-main" onclick="clickTask(${i})">Xong</button>` : ''}`;
         list.appendChild(div);
     });
 
-    // Admin Panel
+    // Admin Duyệt và Phạt
     if(isAdmin) {
         let ac = document.getElementById('adminChild').value;
         ensureToday(ac);
@@ -280,7 +282,7 @@ function render() {
                 div.innerHTML = `<div style="flex:1"><b>${t.text}</b></div>
                     <div style="display:flex; gap:5px">
                         <button class="btn-action" style="background:var(--success); color:white" onclick="approveTask(${i})">Duyệt</button>
-                        <button class="btn-action btn-danger" onclick="failTask(${i})">Phạt</button>
+                        <button class="btn-action" style="background:var(--danger); color:white" onclick="failTask(${i})">Phạt</button>
                     </div>`;
                 appList.appendChild(div);
             }
@@ -296,7 +298,10 @@ function render() {
     rdiv.innerHTML = '';
     rewards.forEach(r => {
         let can = score >= r.point;
-        rdiv.innerHTML += `<div class="reward-item"><span>${can?'🎁':'🔒'} ${r.text}</span><b>${r.point}đ</b></div>`;
+        rdiv.innerHTML += `<div class="reward-item">
+            <span>${can ? '🎁' : '🔒'} ${r.text}</span>
+            <b style="color:${can ? 'var(--success)' : '#999'}">${r.point} ⭐</b>
+        </div>`;
     });
 }
 </script>
