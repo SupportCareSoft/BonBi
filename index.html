@@ -113,7 +113,6 @@
 </div>
 
 <script>
-// --- CẤU HÌNH FIREBASE ---
 const firebaseConfig = {
     apiKey: "AIzaSyCuQCluWc07QOWpAC5lGCxMeOGoujq4k8w",
     authDomain: "bon-bi.firebaseapp.com",
@@ -137,7 +136,6 @@ let logs = {};
 let myChart = null;
 let isAdmin = false;
 
-// --- KẾT NỐI DỮ LIỆU ---
 db.ref('bonbi_data').on('value', (snap) => {
     const data = snap.val();
     if(data) {
