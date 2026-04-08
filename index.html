@@ -11,6 +11,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
         :root { --primary: #4a90e2; --success: #2ecc71; --warning: #f1c40f; --danger: #e74c3c; }
@@ -38,12 +39,14 @@
         .task-info { flex-grow: 1; margin-right: 10px; }
         .task-status { font-size: 0.7em; font-weight: bold; text-transform: uppercase; margin-top: 4px; color: #888; }
         .btn-action { width: auto; padding: 8px 18px; margin: 0; font-size: 0.9em; }
+        .btn-redo { background: #eee; color: #666; font-size: 0.7em; padding: 4px 8px; width: auto; margin-top: 5px; }
 
         .admin-box { background: #f8f9fa; padding: 15px; border-radius: 15px; border: 2px solid #ddd; margin-top: 20px; }
         .score-board { background: linear-gradient(135deg, var(--primary) 0%, #357abd 100%); color: white; padding: 20px; border-radius: 15px; text-align: center; margin: 15px 0; }
         .reward-item { padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
         .tab-group { display: flex; gap: 5px; margin-bottom: 10px; }
         .loading { text-align: center; color: var(--primary); font-weight: bold; padding: 50px; }
+        .report-box { margin-top: 30px; padding-top: 20px; border-top: 2px solid #f0f2f5; }
     </style>
 </head>
 <body>
@@ -72,6 +75,11 @@
 
     <h3 style="margin-top: 25px; border-bottom: 2px solid #f0f2f5; padding-bottom: 10px;">🎁 Quà của bé</h3>
     <div id="rewardList"></div>
+
+    <div class="report-box">
+        <h3 style="text-align: center; font-size: 1em;">📊 Theo dõi tháng này</h3>
+        <canvas id="scoreChart" style="width:100%; height:200px"></canvas>
+    </div>
 
     <button class="btn-admin" onclick="login()">🔐 CHẾ ĐỘ QUẢN LÝ</button>
 
@@ -128,8 +136,8 @@ const db = firebase.database();
 
 const PASSWORD = "1";
 let isAdmin = false;
+let myChart = null;
 
-// Link ảnh con
 const childAvatars = {
     BON: "https://i.postimg.cc/G9vhLbhg/Bon.jpg", 
     BI: "https://i.postimg.cc/hhVPDKP0/Bi.jpg"
@@ -142,7 +150,6 @@ let taskData = {
 let logs = {};
 let rewards = [{text: "Kem ốc quế", point: 5}, {text: "Đi công viên", point: 10}];
 
-// --- KẾT NỐI VÀ ĐỒNG BỘ ---
 db.ref('bonbi_data').on('value', (snapshot) => {
     const data = snapshot.val();
     if (data) {
@@ -181,6 +188,15 @@ function clickTask(i) {
     sync();
 }
 
+// Hàm cho con sửa lại lựa chọn
+function redoTask(i) {
+    let c = document.getElementById('childSelect').value;
+    if(logs[c][today()][i].status === 'pending') {
+        logs[c][today()][i].status = 'not';
+        sync();
+    }
+}
+
 function approveTask(i) {
     let ac = document.getElementById('adminChild').value;
     logs[ac][today()][i].status = 'done';
@@ -214,7 +230,6 @@ function addReward() {
     }
 }
 
-// --- GIAO DIỆN ---
 function login() {
     if(prompt("Mật khẩu bố mẹ:") === PASSWORD) {
         isAdmin = true;
@@ -240,6 +255,41 @@ function calcScore(c) {
     return total;
 }
 
+// Vẽ biểu đồ
+function updateChart() {
+    const ctx = document.getElementById('scoreChart').getContext('2d');
+    const now = new Date();
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const labels = Array.from({length: daysInMonth}, (_, i) => i + 1);
+
+    const getData = (child) => {
+        let currentTotal = 0;
+        return labels.map(day => {
+            const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            if (logs[child] && logs[child][dateStr]) {
+                logs[child][dateStr].forEach(t => {
+                    if(t.status === 'done') currentTotal++;
+                    if(t.status === 'missed') currentTotal--;
+                });
+            }
+            return currentTotal;
+        });
+    };
+
+    if(myChart) myChart.destroy();
+    myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                { label: 'BON', data: getData('BON'), borderColor: '#4a90e2', tension: 0.3 },
+                { label: 'BI', data: getData('BI'), borderColor: '#e74c3c', tension: 0.3 }
+            ]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+    });
+}
+
 function render() {
     let c = document.getElementById('childSelect').value;
     let d = today();
@@ -251,7 +301,6 @@ function render() {
     
     ensureToday(c);
 
-    // Render danh sách việc cho bé
     let list = document.getElementById('taskList');
     list.innerHTML = '<h3 style="font-size: 1em">📝 Việc cần làm:</h3>';
     logs[c][d].forEach((t, i) => {
@@ -264,12 +313,17 @@ function render() {
             'not': '⭕ Chưa xong'
         }[t.status];
         
-        div.innerHTML = `<div class="task-info"><b>${t.text}</b><div class="task-status">${st}</div></div>
-            ${t.status === 'not' ? `<button class="btn-action btn-main" onclick="clickTask(${i})">Xong</button>` : ''}`;
+        div.innerHTML = `
+            <div class="task-info">
+                <b>${t.text}</b>
+                <div class="task-status">${st}</div>
+                ${t.status === 'pending' ? `<button class="btn-redo" onclick="redoTask(${i})">↩ Làm lại/Sửa</button>` : ''}
+            </div>
+            ${t.status === 'not' ? `<button class="btn-action btn-main" onclick="clickTask(${i})">Xong</button>` : ''}
+        `;
         list.appendChild(div);
     });
 
-    // Admin Duyệt và Phạt
     if(isAdmin) {
         let ac = document.getElementById('adminChild').value;
         ensureToday(ac);
@@ -291,7 +345,6 @@ function render() {
         document.getElementById('tasksWeekend').value = (taskData[ac].weekend || []).join('\n');
     }
 
-    // Điểm & Quà
     let score = calcScore(c);
     document.getElementById('score').innerText = score;
     let rdiv = document.getElementById('rewardList');
@@ -303,6 +356,8 @@ function render() {
             <b style="color:${can ? 'var(--success)' : '#999'}">${r.point} ⭐</b>
         </div>`;
     });
+    
+    updateChart();
 }
 </script>
 </body>
